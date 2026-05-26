@@ -10,7 +10,7 @@ Desenvolver o layout visual da tela Home utilizando dados mockados no ViewModel,
    - Saldo específico daquela conta formatado em R$.
 
 ## Critérios de Aceitação
-- [ ] Criar `HomeViewModel.kt` com uma lista de contas estáticas mockadas.
-- [ ] Criar `HomeScreen.kt` consumindo os dados do ViewModel.
-- [ ] O layout exibe o saldo geral em destaque no topo.
-- [ ] A listagem de contas renderiza corretamente abaixo do saldo geral.
+- [X] Criar `HomeViewModel.kt` com uma lista de contas estáticas mockadas.
+- [X] Criar `HomeScreen.kt` consumindo os dados do ViewModel.
+- [X] O layout exibe o saldo geral em destaque no topo.
+- [X] A listagem de contas renderiza corretamente abaixo do saldo geral.

@@ -16,6 +16,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.casamassa.prospera.presentation.components.MonthSelector
 import java.text.NumberFormat
 import java.util.*
 
@@ -52,50 +53,6 @@ fun FluxoScreen(viewModel: FluxoViewModel = viewModel()) {
         ) {
             items(uiState.transactions) { transaction ->
                 TransactionItem(transaction, currencyFormatter)
-            }
-        }
-    }
-}
-
-@Composable
-fun MonthSelector(
-    formattedDate: String,
-    onPreviousMonth: () -> Unit,
-    onNextMonth: () -> Unit
-) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        color = MaterialTheme.colorScheme.surfaceVariant,
-        shape = MaterialTheme.shapes.medium
-    ) {
-        Row(
-            modifier = Modifier
-                .padding(horizontal = 8.dp, vertical = 12.dp)
-                .fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconButton(onClick = onPreviousMonth) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBackIos,
-                    contentDescription = "Mês Anterior",
-                    tint = MaterialTheme.colorScheme.primary
-                )
-            }
-
-            Text(
-                text = formattedDate,
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-
-            IconButton(onClick = onNextMonth) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
-                    contentDescription = "Próximo Mês",
-                    tint = MaterialTheme.colorScheme.primary
-                )
             }
         }
     }

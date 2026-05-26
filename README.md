@@ -4,6 +4,31 @@ Prospera é um aplicativo Android nativo para gestão de finanças pessoais, ope
 
 ---
 
+## 📱 Demonstração
+
+<table align="center" width="100%">
+  <tr>
+    <td align="center" width="25%" valign="top">
+      <h3>Home</h3>
+      <img src="./screenshots/01-home.png" style="max-height: 450px; width: auto;" alt="Tela Inicial"/>
+    </td>
+    <td align="center" width="25%" valign="top">
+      <h3>Fluxo de Caixa</h3>
+      <img src="./screenshots/02-fluxo.png" style="max-height: 450px; width: auto;" alt="Tela de Fluxo de Caixa"/>
+    </td>
+    <td align="center" width="25%" valign="top">
+      <h3>Relatórios</h3>
+      <img src="./screenshots/03-reports.png" style="max-height: 450px; width: auto;" alt="Tela de Relatórios"/>
+    </td>
+    <td align="center" width="25%" valign="top">
+      <h3>Navegação</h3>
+      <img src="./screenshots/navigation.gif" style="max-height: 450px; width: auto;" alt="Navegação"/>
+    </td>
+  </tr>
+</table>
+
+---
+
 ## 🚀 O Diferencial deste Projeto: Spec-Driven Development (SDD)
 
 Este projeto não foi construído apenas escrevendo código de forma livre. Ele utiliza **Spec-Driven Development (SDD)** combinando engenharia de software tradicional com Inteligência Artificial generativa através do **Gemini Code CLI**.
@@ -33,11 +58,12 @@ O aplicativo foi projetado seguindo as melhores práticas recomendadas pela Goog
 
 O projeto está dividido em etapas incrementais e controladas para garantir a entrega contínua de valor:
 
-- [ ] **Fase 1: Layout e Navegação (Em andamento)**
+- [X] **Fase 1: Layout e Navegação**
   - Configuração do `NavHost` e menu inferior unificado.
   - Tela Home: Exibição do saldo geral unificado e listagem detalhada por conta (dados estáticos).
   - Tela Fluxo de Caixa: Extrato de lançamentos mensais com paginação/filtro por mês (dados estáticos).
-- [ ] **Fase 2: Persistência e Regras de Negócio**
+  - Tela Relatórios: Gráficos de relatórios mensais com paginação/filtro por mês (dados estáticos).
+- [ ] **Fase 2: Persistência e Regras de Negócio (Em andamento)**
   - Implementação do banco de dados local com Room.
   - CRUD completo de Contas Bancárias.
   - CRUD completo de Categorias e Subcategorias.

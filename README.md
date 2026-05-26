@@ -88,7 +88,8 @@ com.casamassa.prospera/
     ├── navigation/        # Controle de rotas da aplicação
     ├── theme/             # Design System (Cores, Tipos do Material 3)
     ├── home/              # Feature: Tela Inicial (Screen + ViewModel)
-    └── fluxo/             # Feature: Extrato Mensal (Screen + ViewModel)
+    ├── fluxo/             # Feature: Extrato Mensal (Screen + ViewModel)
+    └── relatorios/        # Feature: Relatório Mensal (Screen + ViewModel)
 ```
 
 ---

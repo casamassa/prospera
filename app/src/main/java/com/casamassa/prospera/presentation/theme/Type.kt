@@ -1,4 +1,4 @@
-package com.casamassa.prospera.ui.theme
+package com.casamassa.prospera.presentation.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle

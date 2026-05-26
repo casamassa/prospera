@@ -12,7 +12,7 @@ Precisamos criar a estrutura base de navegação do aplicativo com um menu fixo 
    - Relatórios (Ícone de gráfico)
 
 ## Critérios de Aceitação
-- [ ] O app compila sem erros usando Jetpack Navigation.
-- [ ] Ao abrir o app, a tela padrão exibida é a Home.
-- [ ] Ao clicar nos ícones da BottomBar, a navegação alterna corretamente entre as três telas.
-- [ ] O estado do ícone selecionado muda visualmente ao ser clicado.
+- [X] O app compila sem erros usando Jetpack Navigation.
+- [X] Ao abrir o app, a tela padrão exibida é a Home.
+- [X] Ao clicar nos ícones da BottomBar, a navegação alterna corretamente entre as três telas.
+- [X] O estado do ícone selecionado muda visualmente ao ser clicado.

@@ -16,4 +16,4 @@ Instalar o Room Database no projeto Android e estruturar as entidades de dados (
 - [X] A entidade de Contas possui o campo booleano `is_active`.
 - [X] A entidade de Categorias possui a auto-relação opcional `parent_category_id`.
 - [X] A entidade de Lançamentos possui as restrições de chaves estrangeiras configuradas com `RESTRICT` para evitar a exclusão acidental de registros vinculados.
-- [ ] O pipeline do GitHub Actions roda e o projeto compila com sucesso com as novas classes do Room.
+- [X] O pipeline do GitHub Actions roda e o projeto compila com sucesso com as novas classes do Room.

@@ -63,6 +63,9 @@ O projeto está dividido em etapas incrementais e controladas para garantir a en
   - Tela Home: Exibição do saldo geral unificado e listagem detalhada por conta (dados estáticos).
   - Tela Fluxo de Caixa: Extrato de lançamentos mensais com paginação/filtro por mês (dados estáticos).
   - Tela Relatórios: Gráficos de relatórios mensais com paginação/filtro por mês (dados estáticos).
+  - Tela Lancamentos: Lançamentos de Despesa/Receita (dados estáticos).
+  - Tela Gerenciamento de Contas: CRUD de contas (dados estáticos).
+  - Tela Gerenciamento de Categorias/Subcategorias: CRUD de categorias/subcategorias (dados estáticos).
 - [ ] **Fase 2: Persistência e Regras de Negócio (Em andamento)**
   - Implementação do banco de dados local com Room.
   - CRUD completo de Contas Bancárias.
@@ -87,9 +90,14 @@ com.casamassa.prospera/
 └── presentation/          # Camada de Apresentação (Interface)
     ├── navigation/        # Controle de rotas da aplicação
     ├── theme/             # Design System (Cores, Tipos do Material 3)
+    ├── components/        # Componentes reutilizáveis
     ├── home/              # Feature: Tela Inicial (Screen + ViewModel)
     ├── fluxo/             # Feature: Extrato Mensal (Screen + ViewModel)
-    └── relatorios/        # Feature: Relatório Mensal (Screen + ViewModel)
+    ├── relatorios/        # Feature: Relatório Mensal (Screen + ViewModel)
+    ├── contas/            # Feature: Gerenciamento Contas (Screen + ViewModel)
+    ├── categorias/        # Feature: Gerenciamento Categorias/Subcategotias (Screen + ViewModel)
+    ├── lancamento/        # Feature: Form de lancamento Despesa/Receita (Form + ViewModel)
+    └── configuracoes/     # Feature: Submenu acessivel pelo Bottom Menu Bar (Screen)
 ```
 
 ---

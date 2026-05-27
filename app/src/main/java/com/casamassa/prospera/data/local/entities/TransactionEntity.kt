@@ -3,6 +3,7 @@ package com.casamassa.prospera.data.local.entities
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
 @Entity(
@@ -26,6 +27,11 @@ import androidx.room.PrimaryKey
             childColumns = ["transfer_target_account_id"],
             onDelete = ForeignKey.RESTRICT
         )
+    ],
+    indices = [
+        Index(value = ["conta_id"]),
+        Index(value = ["categoria_id"]),
+        Index(value = ["transfer_target_account_id"])
     ]
 )
 data class TransactionEntity(

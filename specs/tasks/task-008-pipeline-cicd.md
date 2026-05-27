@@ -17,8 +17,8 @@ Implementar uma esteira automatizada de Integração Contínua (CI) usando GitHu
    - **Arquivamento do APK (Artefato):** Salvar o arquivo `.apk` gerado pelo build como um artefato do GitHub, permitindo o download direto do app direto pela interface do repositório.
 
 ## Critérios de Aceitação
-- [ ] Criar o arquivo de configuração no caminho correto da raiz do projeto: `.github/workflows/android.yml`.
-- [ ] O arquivo YAML deve estar formatado corretamente, sem erros de indentação.
-- [ ] O pipeline utiliza ações oficiais e atualizadas do GitHub (como `actions/checkout` e `actions/setup-java`).
-- [ ] O processo de build aponta para as tarefas padrões do Gradle Android (`lintDebug` e `assembleDebug`).
-- [ ] O artefato final do APK gerado é exposto para download com sucesso ao final da execução.
+- [X] Criar o arquivo de configuração no caminho correto da raiz do projeto: `.github/workflows/android.yml`.
+- [X] O arquivo YAML deve estar formatado corretamente, sem erros de indentação.
+- [X] O pipeline utiliza ações oficiais e atualizadas do GitHub (como `actions/checkout` e `actions/setup-java`).
+- [X] O processo de build aponta para as tarefas padrões do Gradle Android (`lintDebug` e `assembleDebug`).
+- [X] O artefato final do APK gerado é exposto para download com sucesso ao final da execução.

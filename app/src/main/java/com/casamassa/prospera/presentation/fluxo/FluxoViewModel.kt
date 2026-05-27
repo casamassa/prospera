@@ -4,9 +4,8 @@ import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import java.time.LocalDate
-import java.time.format.TextStyle
-import java.util.Locale
+import java.text.SimpleDateFormat
+import java.util.*
 
 enum class TransactionType {
     RECEITA, DESPESA
@@ -20,7 +19,7 @@ data class Transaction(
 )
 
 data class FluxoUiState(
-    val selectedDate: LocalDate = LocalDate.now(),
+    val selectedCalendar: Calendar = Calendar.getInstance(),
     val transactions: List<Transaction> = emptyList()
 )
 
@@ -33,14 +32,15 @@ class FluxoViewModel : ViewModel() {
     }
 
     fun nextMonth() {
-        val nextDate = _uiState.value.selectedDate.plusMonths(1)
-        _uiState.value = _uiState.value.copy(selectedDate = nextDate)
-        // In a real app, we would reload transactions for the new date
+        val nextDate = _uiState.value.selectedCalendar.clone() as Calendar
+        nextDate.add(Calendar.MONTH, 1)
+        _uiState.value = _uiState.value.copy(selectedCalendar = nextDate)
     }
 
     fun previousMonth() {
-        val prevDate = _uiState.value.selectedDate.minusMonths(1)
-        _uiState.value = _uiState.value.copy(selectedDate = prevDate)
+        val prevDate = _uiState.value.selectedCalendar.clone() as Calendar
+        prevDate.add(Calendar.MONTH, -1)
+        _uiState.value = _uiState.value.copy(selectedCalendar = prevDate)
     }
 
     private fun loadMockTransactions() {
@@ -57,10 +57,8 @@ class FluxoViewModel : ViewModel() {
     }
 
     fun getFormattedDate(): String {
-        val date = _uiState.value.selectedDate
-        val month = date.month.getDisplayName(TextStyle.FULL, Locale.forLanguageTag("pt-BR"))
-            .replaceFirstChar { it.uppercase() }
-        val year = date.year
-        return "$month $year"
+        val date = _uiState.value.selectedCalendar.time
+        val sdf = SimpleDateFormat("MMMM yyyy", Locale.forLanguageTag("pt-BR"))
+        return sdf.format(date).replaceFirstChar { it.uppercase() }
     }
 }

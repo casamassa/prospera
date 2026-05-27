@@ -16,7 +16,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.casamassa.prospera.presentation.fluxo.TransactionType
+import com.casamassa.prospera.domain.model.Category
+import com.casamassa.prospera.domain.model.TransactionType
 import com.casamassa.prospera.presentation.lancamento.DropdownSelector
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -87,11 +88,11 @@ fun CategoriasScreen(
 
 @Composable
 fun CategoryItem(
-    category: Category,
+    category: CategoryUi,
     onEditCategory: () -> Unit,
     onDeleteCategory: () -> Unit,
-    onEditSubcategory: (Subcategory) -> Unit,
-    onDeleteSubcategory: (Subcategory) -> Unit
+    onEditSubcategory: (Category) -> Unit,
+    onDeleteSubcategory: (Category) -> Unit
 ) {
     var expanded by remember { mutableStateOf(true) }
 
@@ -145,7 +146,7 @@ fun CategoryItem(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
-                        text = "• ${sub.name}",
+                        text = "• ${sub.nome}",
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.weight(1f)
                     )

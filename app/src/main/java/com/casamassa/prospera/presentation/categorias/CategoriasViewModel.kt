@@ -1,26 +1,24 @@
 package com.casamassa.prospera.presentation.categorias
 
 import androidx.lifecycle.ViewModel
-import com.casamassa.prospera.presentation.fluxo.TransactionType
+import com.casamassa.prospera.domain.model.Category
+import com.casamassa.prospera.domain.model.TransactionType
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-data class Subcategory(
-    val name: String,
-    val type: TransactionType
-)
-
-data class Category(
+// Temporary wrapper for UI display of subcategories if they are not in the main domain model as a list
+data class CategoryUi(
+    val id: Long,
     val name: String,
     val type: TransactionType,
-    val subcategories: List<Subcategory> = emptyList()
+    val subcategories: List<Category> = emptyList()
 )
 
 data class CategoriasUiState(
-    val categories: List<Category> = emptyList(),
+    val categories: List<CategoryUi> = emptyList(),
     val isDialogVisible: Boolean = false,
-    val editingCategory: Any? = null, // Can be Category or Subcategory
+    val editingCategory: Any? = null, // Can be Category or CategoryUi
     val nameInput: String = "",
     val selectedType: TransactionType = TransactionType.DESPESA,
     val selectedParentCategory: String? = null
@@ -37,17 +35,17 @@ class CategoriasViewModel : ViewModel() {
     private fun loadMockCategories() {
         _uiState.value = _uiState.value.copy(
             categories = listOf(
-                Category("Alimentação", TransactionType.DESPESA, listOf(
-                    Subcategory("Supermercado", TransactionType.DESPESA),
-                    Subcategory("Restaurante", TransactionType.DESPESA)
+                CategoryUi(1, "Alimentação", TransactionType.DESPESA, listOf(
+                    Category(2, "Supermercado", TransactionType.DESPESA, 1),
+                    Category(3, "Restaurante", TransactionType.DESPESA, 1)
                 )),
-                Category("Trabalho", TransactionType.RECEITA, listOf(
-                    Subcategory("Salário", TransactionType.RECEITA),
-                    Subcategory("Bônus", TransactionType.RECEITA)
+                CategoryUi(4, "Trabalho", TransactionType.RECEITA, listOf(
+                    Category(5, "Salário", TransactionType.RECEITA, 4),
+                    Category(6, "Bônus", TransactionType.RECEITA, 4)
                 )),
-                Category("Moradia", TransactionType.DESPESA, listOf(
-                    Subcategory("Aluguel", TransactionType.DESPESA),
-                    Subcategory("Energia", TransactionType.DESPESA)
+                CategoryUi(7, "Moradia", TransactionType.DESPESA, listOf(
+                    Category(8, "Aluguel", TransactionType.DESPESA, 7),
+                    Category(9, "Energia", TransactionType.DESPESA, 7)
                 ))
             )
         )
@@ -63,7 +61,7 @@ class CategoriasViewModel : ViewModel() {
         )
     }
 
-    fun showEditCategoryDialog(category: Category) {
+    fun showEditCategoryDialog(category: CategoryUi) {
         _uiState.value = _uiState.value.copy(
             isDialogVisible = true,
             editingCategory = category,
@@ -73,12 +71,12 @@ class CategoriasViewModel : ViewModel() {
         )
     }
 
-    fun showEditSubcategoryDialog(subcategory: Subcategory, parentName: String) {
+    fun showEditSubcategoryDialog(subcategory: Category, parentName: String) {
         _uiState.value = _uiState.value.copy(
             isDialogVisible = true,
             editingCategory = subcategory,
-            nameInput = subcategory.name,
-            selectedType = subcategory.type,
+            nameInput = subcategory.nome,
+            selectedType = subcategory.tipo,
             selectedParentCategory = parentName
         )
     }
@@ -100,15 +98,10 @@ class CategoriasViewModel : ViewModel() {
     }
 
     fun saveCategory() {
-        // Simular salvamento
         hideDialog()
     }
 
-    fun deleteCategory(category: Category) {
-        // Simular exclusão
-    }
+    fun deleteCategory(category: CategoryUi) {}
 
-    fun deleteSubcategory(subcategory: Subcategory) {
-        // Simular exclusão
-    }
+    fun deleteSubcategory(subcategory: Category) {}
 }

@@ -1,6 +1,7 @@
 package com.casamassa.prospera.data.local.dao
 
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
@@ -12,6 +13,9 @@ import kotlinx.coroutines.flow.Flow
 interface TransactionDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(transaction: TransactionEntity): Long
+
+    @Delete
+    suspend fun delete(transaction: TransactionEntity): Int
 
     @Query("SELECT * FROM lancamentos WHERE data_timestamp BETWEEN :startMillis AND :endMillis")
     fun getTransactionsByDateRange(startMillis: Long, endMillis: Long): Flow<List<TransactionEntity>>

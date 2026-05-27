@@ -1,7 +1,7 @@
 package com.casamassa.prospera.presentation.contas
 
 import androidx.lifecycle.ViewModel
-import com.casamassa.prospera.presentation.home.Account
+import com.casamassa.prospera.domain.model.Account
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -25,10 +25,10 @@ class ContasViewModel : ViewModel() {
     private fun loadMockAccounts() {
         _uiState.value = _uiState.value.copy(
             accounts = listOf(
-                Account("Carteira", 150.50),
-                Account("Banco Inter", 2500.00),
-                Account("Nubank", 1200.75),
-                Account("Poupança", 5000.00)
+                Account(id = 1, nome = "Carteira", saldoInicial = 150.50, saldoAtual = 150.50),
+                Account(id = 2, nome = "Banco Inter", saldoInicial = 2500.00, saldoAtual = 2500.00),
+                Account(id = 3, nome = "Nubank", saldoInicial = 1200.75, saldoAtual = 1200.75),
+                Account(id = 4, nome = "Poupança", saldoInicial = 5000.00, saldoAtual = 5000.00)
             )
         )
     }
@@ -46,8 +46,8 @@ class ContasViewModel : ViewModel() {
         _uiState.value = _uiState.value.copy(
             isDialogVisible = true,
             editingAccount = account,
-            nameInput = account.name,
-            balanceInput = account.balance.toString()
+            nameInput = account.nome,
+            balanceInput = account.saldoAtual.toString()
         )
     }
 

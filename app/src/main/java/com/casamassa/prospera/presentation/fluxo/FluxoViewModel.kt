@@ -1,26 +1,17 @@
 package com.casamassa.prospera.presentation.fluxo
 
 import androidx.lifecycle.ViewModel
+import com.casamassa.prospera.domain.model.FinancialTransaction
+import com.casamassa.prospera.domain.model.TransactionType
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import java.text.SimpleDateFormat
 import java.util.*
 
-enum class TransactionType {
-    RECEITA, DESPESA
-}
-
-data class Transaction(
-    val description: String,
-    val category: String,
-    val value: Double,
-    val type: TransactionType
-)
-
 data class FluxoUiState(
     val selectedCalendar: Calendar = Calendar.getInstance(),
-    val transactions: List<Transaction> = emptyList()
+    val transactions: List<FinancialTransaction> = emptyList()
 )
 
 class FluxoViewModel : ViewModel() {
@@ -45,13 +36,13 @@ class FluxoViewModel : ViewModel() {
 
     private fun loadMockTransactions() {
         val mockData = listOf(
-            Transaction("Salário Mensal", "Trabalho", 5500.00, TransactionType.RECEITA),
-            Transaction("Supermercado", "Alimentação", 850.40, TransactionType.DESPESA),
-            Transaction("Aluguel", "Moradia", 1200.00, TransactionType.DESPESA),
-            Transaction("Venda de Notebook", "Extra", 1500.00, TransactionType.RECEITA),
-            Transaction("Posto de Gasolina", "Transporte", 220.00, TransactionType.DESPESA),
-            Transaction("Assinatura Streaming", "Lazer", 55.90, TransactionType.DESPESA),
-            Transaction("Academia", "Saúde", 110.00, TransactionType.DESPESA)
+            FinancialTransaction(1, "Salário Mensal", 5500.00, System.currentTimeMillis(), TransactionType.RECEITA, 1, 1),
+            FinancialTransaction(2, "Supermercado", 850.40, System.currentTimeMillis(), TransactionType.DESPESA, 1, 2),
+            FinancialTransaction(3, "Aluguel", 1200.00, System.currentTimeMillis(), TransactionType.DESPESA, 1, 3),
+            FinancialTransaction(4, "Venda de Notebook", 1500.00, System.currentTimeMillis(), TransactionType.RECEITA, 1, 4),
+            FinancialTransaction(5, "Posto de Gasolina", 220.00, System.currentTimeMillis(), TransactionType.DESPESA, 1, 5),
+            FinancialTransaction(6, "Assinatura Streaming", 55.90, System.currentTimeMillis(), TransactionType.DESPESA, 1, 6),
+            FinancialTransaction(7, "Academia", 110.00, System.currentTimeMillis(), TransactionType.DESPESA, 1, 7)
         )
         _uiState.value = _uiState.value.copy(transactions = mockData)
     }

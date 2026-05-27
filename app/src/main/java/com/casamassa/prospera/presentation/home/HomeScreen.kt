@@ -13,6 +13,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.casamassa.prospera.domain.model.Account
 import java.text.NumberFormat
 import java.util.*
 
@@ -90,14 +91,14 @@ fun AccountItem(account: Account, formatter: NumberFormat) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = account.name,
+                text = account.nome,
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.Medium
             )
             Text(
-                text = formatter.format(account.balance),
+                text = formatter.format(account.saldoAtual),
                 style = MaterialTheme.typography.bodyLarge,
-                color = if (account.balance >= 0) 
+                color = if (account.saldoAtual >= 0) 
                     MaterialTheme.colorScheme.primary 
                 else 
                     MaterialTheme.colorScheme.error

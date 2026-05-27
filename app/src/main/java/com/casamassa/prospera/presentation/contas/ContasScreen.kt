@@ -16,7 +16,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.casamassa.prospera.presentation.home.Account
+import com.casamassa.prospera.domain.model.Account
 import java.text.NumberFormat
 import java.util.*
 
@@ -101,12 +101,12 @@ fun AccountListItem(
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = account.name,
+                    text = account.nome,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    text = formatter.format(account.balance),
+                    text = formatter.format(account.saldoAtual),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.primary
                 )

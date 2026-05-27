@@ -7,6 +7,7 @@ import androidx.navigation.compose.composable
 import com.casamassa.prospera.presentation.home.HomeScreen
 import com.casamassa.prospera.presentation.fluxo.FluxoScreen
 import com.casamassa.prospera.presentation.relatorios.RelatoriosScreen
+import com.casamassa.prospera.presentation.configuracoes.ConfiguracoesScreen
 
 @Composable
 fun ProsperaNavGraph(navController: NavHostController) {
@@ -22,6 +23,9 @@ fun ProsperaNavGraph(navController: NavHostController) {
         }
         composable(Screen.Relatorios.route) {
             RelatoriosScreen()
+        }
+        composable(Screen.Configuracoes.route) {
+            ConfiguracoesScreen()
         }
     }
 }

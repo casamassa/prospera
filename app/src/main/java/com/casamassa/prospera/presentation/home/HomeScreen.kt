@@ -12,13 +12,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.casamassa.prospera.domain.model.Account
 import java.text.NumberFormat
 import java.util.*
 
 @Composable
-fun HomeScreen(viewModel: HomeViewModel = viewModel()) {
+fun HomeScreen(viewModel: HomeViewModel) {
     val uiState by viewModel.uiState.collectAsState()
     val currencyFormatter = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("pt-BR"))
 
@@ -68,11 +67,17 @@ fun HomeScreen(viewModel: HomeViewModel = viewModel()) {
         )
 
         // Lista de Contas
-        LazyColumn(
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            items(uiState.accounts) { account ->
-                AccountItem(account, currencyFormatter)
+        if (uiState.accounts.isEmpty() && !uiState.isLoading) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text(text = "Nenhuma conta cadastrada.")
+            }
+        } else {
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(uiState.accounts) { account ->
+                    AccountItem(account, currencyFormatter)
+                }
             }
         }
     }

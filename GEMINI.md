@@ -18,4 +18,4 @@
 
 ## Regras de Resposta
 - Escreva código limpo, autoexplicativo e modular.
-- Não gere código de testes ou de persistência local (Room) a menos que a Task explicitamente peça.
+- Implemente a persistência local utilizando Room Database conforme o modelo arquitetural de camadas (Entidades -> DAOs -> Repositórios).

@@ -10,8 +10,9 @@ Desenvolver um aplicativo Android nativo para organização financeira pessoal. 
 - **Navegação:** Jetpack Navigation Compose
 - **Banco de Dados (Fase Futura):** Room SQLite
 
-## Diretrizes do MVP (Fase 1: Layout e Navegação)
-- Idioma único: Português (pt-BR).
-- Moeda única: Real (R$).
-- Foco exclusivo em UI estática (dados mockados) e navegação entre telas.
-- Nenhuma lógica de banco de dados ou repositório deve ser criada nesta fase.
+## Diretrizes do MVP (Fase 2: Persistência e Regras de Negócio)
+- Idioma único: Português (pt-BR) | Moeda única: Real (R$).
+- **Foco atual:** Substituir os dados mockados das ViewModels por persistência real utilizando o Room Database.
+- Implementar as tabelas e DAOs respeitando as chaves estrangeiras e integridade referencial.
+- Toda operação de escrita no banco que altere saldos deve ocorrer dentro de transações na camada Domain/Data.
+

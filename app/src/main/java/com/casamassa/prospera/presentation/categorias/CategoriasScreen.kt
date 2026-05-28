@@ -15,7 +15,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.casamassa.prospera.domain.model.Category
 import com.casamassa.prospera.domain.model.TransactionType
 import com.casamassa.prospera.presentation.components.DropdownSelector
@@ -24,7 +23,7 @@ import com.casamassa.prospera.presentation.components.DropdownSelector
 @Composable
 fun CategoriasScreen(
     onBack: () -> Unit,
-    viewModel: CategoriasViewModel = viewModel()
+    viewModel: CategoriasViewModel
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -72,13 +71,9 @@ fun CategoriasScreen(
         if (uiState.isDialogVisible) {
             CategoryDialog(
                 uiState = uiState,
-                parentCategoryOptions = listOf("Nenhuma (Principal)") + uiState.categories.map { it.name },
                 onNameChange = { viewModel.onNameChange(it) },
                 onTypeChange = { viewModel.onTypeChange(it) },
-                onParentChange = { 
-                    val parent = if (it == "Nenhuma (Principal)") null else it
-                    viewModel.onParentCategoryChange(parent)
-                },
+                onParentChange = { viewModel.onParentCategoryChange(it) },
                 onSave = { viewModel.saveCategory() },
                 onCancel = { viewModel.hideDialog() }
             )
@@ -168,13 +163,16 @@ fun CategoryItem(
 @Composable
 fun CategoryDialog(
     uiState: CategoriasUiState,
-    parentCategoryOptions: List<String>,
     onNameChange: (String) -> Unit,
     onTypeChange: (TransactionType) -> Unit,
-    onParentChange: (String) -> Unit,
+    onParentChange: (Long?) -> Unit,
     onSave: () -> Unit,
     onCancel: () -> Unit
 ) {
+    val parentOptions = remember(uiState.categories) {
+        listOf("Nenhuma (Principal)" to null) + uiState.categories.map { it.name to it.id }
+    }
+
     AlertDialog(
         onDismissRequest = onCancel,
         title = { Text(if (uiState.editingCategory == null) "Nova Categoria" else "Editar Categoria") },
@@ -206,18 +204,23 @@ fun CategoryDialog(
                     }
                 }
 
+                val selectedParentName = parentOptions.find { it.second == uiState.selectedParentCategoryId }?.first ?: "Nenhuma (Principal)"
                 DropdownSelector(
                     label = "Categoria Pai (Opcional)",
-                    options = parentCategoryOptions.map { it to it },
-                    selectedOption = uiState.selectedParentCategory ?: "Nenhuma (Principal)",
+                    options = parentOptions,
+                    selectedOption = selectedParentName,
                     onOptionSelected = onParentChange,
                     modifier = Modifier.fillMaxWidth()
                 )
             }
         },
         confirmButton = {
-            TextButton(onClick = onSave) {
-                Text("Salvar")
+            TextButton(onClick = onSave, enabled = !uiState.isSaving) {
+                if (uiState.isSaving) {
+                    CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
+                } else {
+                    Text("Salvar")
+                }
             }
         },
         dismissButton = {

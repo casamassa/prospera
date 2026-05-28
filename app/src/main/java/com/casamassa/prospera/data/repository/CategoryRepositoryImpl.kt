@@ -16,6 +16,20 @@ class CategoryRepositoryImpl(
         return dao.insert(category.toEntity())
     }
 
+    override suspend fun updateCategory(category: Category) {
+        dao.update(category.toEntity())
+    }
+
+    override suspend fun deleteCategory(category: Category) {
+        dao.delete(category.toEntity())
+    }
+
+    override fun getAllCategories(): Flow<List<Category>> {
+        return dao.getAllCategories().map { entities ->
+            entities.map { it.toDomain() }
+        }
+    }
+
     override fun getCategoriesByType(type: TransactionType): Flow<List<Category>> {
         return dao.getCategoriesByType(type.name).map { entities ->
             entities.map { it.toDomain() }

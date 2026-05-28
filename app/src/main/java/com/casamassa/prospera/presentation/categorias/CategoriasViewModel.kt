@@ -1,13 +1,19 @@
 package com.casamassa.prospera.presentation.categorias
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.casamassa.prospera.domain.model.Category
 import com.casamassa.prospera.domain.model.TransactionType
+import com.casamassa.prospera.domain.repository.CategoryRepository
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
-// Temporary wrapper for UI display of subcategories if they are not in the main domain model as a list
+// Temporary wrapper for UI display of subcategories
 data class CategoryUi(
     val id: Long,
     val name: String,
@@ -18,90 +24,129 @@ data class CategoryUi(
 data class CategoriasUiState(
     val categories: List<CategoryUi> = emptyList(),
     val isDialogVisible: Boolean = false,
-    val editingCategory: Any? = null, // Can be Category or CategoryUi
+    val editingCategory: Category? = null,
     val nameInput: String = "",
     val selectedType: TransactionType = TransactionType.DESPESA,
-    val selectedParentCategory: String? = null
+    val selectedParentCategoryId: Long? = null,
+    val isSaving: Boolean = false
 )
 
-class CategoriasViewModel : ViewModel() {
-    private val _uiState = MutableStateFlow(CategoriasUiState())
-    val uiState: StateFlow<CategoriasUiState> = _uiState.asStateFlow()
+class CategoriasViewModel(
+    private val categoryRepository: CategoryRepository
+) : ViewModel() {
 
-    init {
-        loadMockCategories()
-    }
+    private val _dialogState = MutableStateFlow(DialogState())
 
-    private fun loadMockCategories() {
-        _uiState.value = _uiState.value.copy(
-            categories = listOf(
-                CategoryUi(1, "Alimentação", TransactionType.DESPESA, listOf(
-                    Category(2, "Supermercado", TransactionType.DESPESA, 1),
-                    Category(3, "Restaurante", TransactionType.DESPESA, 1)
-                )),
-                CategoryUi(4, "Trabalho", TransactionType.RECEITA, listOf(
-                    Category(5, "Salário", TransactionType.RECEITA, 4),
-                    Category(6, "Bônus", TransactionType.RECEITA, 4)
-                )),
-                CategoryUi(7, "Moradia", TransactionType.DESPESA, listOf(
-                    Category(8, "Aluguel", TransactionType.DESPESA, 7),
-                    Category(9, "Energia", TransactionType.DESPESA, 7)
-                ))
+    val uiState: StateFlow<CategoriasUiState> = combine(
+        categoryRepository.getAllCategories(),
+        _dialogState
+    ) { allCategories, dState ->
+        val parents = allCategories.filter { it.parentCategoryId == null }
+        val categoryUiList = parents.map { parent ->
+            CategoryUi(
+                id = parent.id,
+                name = parent.nome,
+                type = parent.tipo,
+                subcategories = allCategories.filter { it.parentCategoryId == parent.id }
             )
+        }
+
+        CategoriasUiState(
+            categories = categoryUiList,
+            isDialogVisible = dState.isVisible,
+            editingCategory = dState.editingCategory,
+            nameInput = dState.nameInput,
+            selectedType = dState.selectedType,
+            selectedParentCategoryId = dState.selectedParentCategoryId,
+            isSaving = dState.isSaving
         )
-    }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = CategoriasUiState()
+    )
 
     fun showAddDialog() {
-        _uiState.value = _uiState.value.copy(
-            isDialogVisible = true,
-            editingCategory = null,
-            nameInput = "",
-            selectedType = TransactionType.DESPESA,
-            selectedParentCategory = null
-        )
+        _dialogState.value = DialogState(isVisible = true)
     }
 
     fun showEditCategoryDialog(category: CategoryUi) {
-        _uiState.value = _uiState.value.copy(
-            isDialogVisible = true,
-            editingCategory = category,
+        _dialogState.value = DialogState(
+            isVisible = true,
+            editingCategory = Category(category.id, category.name, category.type),
             nameInput = category.name,
             selectedType = category.type,
-            selectedParentCategory = null
+            selectedParentCategoryId = null
         )
     }
 
     fun showEditSubcategoryDialog(subcategory: Category, parentName: String) {
-        _uiState.value = _uiState.value.copy(
-            isDialogVisible = true,
+        _dialogState.value = DialogState(
+            isVisible = true,
             editingCategory = subcategory,
             nameInput = subcategory.nome,
             selectedType = subcategory.tipo,
-            selectedParentCategory = parentName
+            selectedParentCategoryId = subcategory.parentCategoryId
         )
     }
 
     fun hideDialog() {
-        _uiState.value = _uiState.value.copy(isDialogVisible = false)
+        _dialogState.value = DialogState(isVisible = false)
     }
 
     fun onNameChange(newName: String) {
-        _uiState.value = _uiState.value.copy(nameInput = newName)
+        _dialogState.value = _dialogState.value.copy(nameInput = newName)
     }
 
     fun onTypeChange(type: TransactionType) {
-        _uiState.value = _uiState.value.copy(selectedType = type)
+        _dialogState.value = _dialogState.value.copy(selectedType = type)
     }
 
-    fun onParentCategoryChange(parentName: String?) {
-        _uiState.value = _uiState.value.copy(selectedParentCategory = parentName)
+    fun onParentCategoryChange(parentId: Long?) {
+        _dialogState.value = _dialogState.value.copy(selectedParentCategoryId = parentId)
     }
 
     fun saveCategory() {
-        hideDialog()
+        val name = _dialogState.value.nameInput
+        if (name.isBlank()) return
+
+        viewModelScope.launch {
+            _dialogState.value = _dialogState.value.copy(isSaving = true)
+            val editingCategory = _dialogState.value.editingCategory
+            val type = _dialogState.value.selectedType
+            val parentId = _dialogState.value.selectedParentCategoryId
+
+            if (editingCategory == null) {
+                categoryRepository.insertCategory(
+                    Category(nome = name, tipo = type, parentCategoryId = parentId)
+                )
+            } else {
+                categoryRepository.updateCategory(
+                    editingCategory.copy(nome = name, tipo = type, parentCategoryId = parentId)
+                )
+            }
+            hideDialog()
+        }
     }
 
-    fun deleteCategory(category: CategoryUi) {}
+    fun deleteCategory(category: CategoryUi) {
+        viewModelScope.launch {
+            categoryRepository.deleteCategory(Category(category.id, category.name, category.type))
+        }
+    }
 
-    fun deleteSubcategory(subcategory: Category) {}
+    fun deleteSubcategory(subcategory: Category) {
+        viewModelScope.launch {
+            categoryRepository.deleteCategory(subcategory)
+        }
+    }
+
+    private data class DialogState(
+        val isVisible: Boolean = false,
+        val editingCategory: Category? = null,
+        val nameInput: String = "",
+        val selectedType: TransactionType = TransactionType.DESPESA,
+        val selectedParentCategoryId: Long? = null,
+        val isSaving: Boolean = false
+    )
 }

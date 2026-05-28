@@ -39,7 +39,10 @@ fun ConfiguracoesScreen() {
             onBack = { currentScreen = "config" },
             viewModel = viewModel(factory = factory)
         )
-        "categorias" -> CategoriasScreen(onBack = { currentScreen = "config" })
+        "categorias" -> CategoriasScreen(
+            onBack = { currentScreen = "config" },
+            viewModel = viewModel(factory = factory)
+        )
         else -> {
             Column(
                 modifier = Modifier

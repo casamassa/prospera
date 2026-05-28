@@ -26,7 +26,7 @@ class ViewModelFactory(
                 HomeViewModel(accountRepository) as T
             }
             modelClass.isAssignableFrom(FluxoViewModel::class.java) -> {
-                FluxoViewModel(transactionRepository) as T
+                FluxoViewModel(transactionRepository, categoryRepository) as T
             }
             modelClass.isAssignableFrom(LancamentoViewModel::class.java) -> {
                 LancamentoViewModel(

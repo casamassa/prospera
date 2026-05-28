@@ -35,7 +35,7 @@ class ContasViewModel(
         _dialogState
     ) { accounts, dState ->
         ContasUiState(
-            accounts = accounts,
+            accounts = accounts.sortedBy { it.nome.uppercase() },
             isDialogVisible = dState.isVisible,
             editingAccount = dState.editingAccount,
             nameInput = dState.nameInput,

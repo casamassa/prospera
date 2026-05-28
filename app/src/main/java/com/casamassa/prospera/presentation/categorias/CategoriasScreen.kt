@@ -5,6 +5,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -37,34 +38,47 @@ fun CategoriasScreen(
                     }
                 }
             )
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = { viewModel.showAddDialog() },
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
+            ) {
+                Icon(Icons.Default.Add, contentDescription = "Nova Categoria")
+            }
         }
     ) { innerPadding ->
-        Box(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                contentPadding = PaddingValues(top = 16.dp, bottom = 80.dp)
-            ) {
-                items(uiState.categories) { category ->
-                    CategoryItem(
-                        category = category,
-                        onEditCategory = { viewModel.showEditCategoryDialog(category) },
-                        onDeleteCategory = { viewModel.deleteCategory(category) },
-                        onEditSubcategory = { sub -> viewModel.showEditSubcategoryDialog(sub, category.name) },
-                        onDeleteSubcategory = { sub -> viewModel.deleteSubcategory(sub) }
-                    )
-                }
+        Column(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
+            TabRow(selectedTabIndex = uiState.selectedTab) {
+                Tab(
+                    selected = uiState.selectedTab == 0,
+                    onClick = { viewModel.onTabChange(0) },
+                    text = { Text("Despesas") }
+                )
+                Tab(
+                    selected = uiState.selectedTab == 1,
+                    onClick = { viewModel.onTabChange(1) },
+                    text = { Text("Receitas") }
+                )
             }
 
-            Button(
-                onClick = { viewModel.showAddDialog() },
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(16.dp)
-                    .fillMaxWidth()
-                    .height(56.dp)
-            ) {
-                Text("Nova Categoria", fontWeight = FontWeight.Bold)
+            Box(modifier = Modifier.weight(1f)) {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    contentPadding = PaddingValues(top = 16.dp, bottom = 80.dp)
+                ) {
+                    items(uiState.categories) { category ->
+                        CategoryItem(
+                            category = category,
+                            onEditCategory = { viewModel.showEditCategoryDialog(category) },
+                            onDeleteCategory = { viewModel.deleteCategory(category) },
+                            onEditSubcategory = { sub -> viewModel.showEditSubcategoryDialog(sub, category.name) },
+                            onDeleteSubcategory = { sub -> viewModel.deleteSubcategory(sub) }
+                        )
+                    }
+                }
             }
         }
 

@@ -1,31 +1,51 @@
 package com.casamassa.prospera.presentation.fluxo
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.casamassa.prospera.ProsperaApplication
 import com.casamassa.prospera.domain.model.FinancialTransaction
 import com.casamassa.prospera.domain.model.TransactionType
+import com.casamassa.prospera.domain.use_case.InsertTransactionUseCase
+import com.casamassa.prospera.presentation.ViewModelFactory
 import com.casamassa.prospera.presentation.components.MonthSelector
+import com.casamassa.prospera.presentation.lancamento.LancamentoViewModel
 import java.text.NumberFormat
 import java.util.*
 
 @Composable
-fun FluxoScreen(viewModel: FluxoViewModel = viewModel()) {
+fun FluxoScreen(viewModel: FluxoViewModel) {
     val uiState by viewModel.uiState.collectAsState()
     val formattedDate by viewModel.formattedDate.collectAsState()
     val currencyFormatter = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("pt-BR"))
+
+    // We need LancamentoViewModel to trigger the Edit sheet
+    val context = LocalContext.current.applicationContext as ProsperaApplication
+    val factory = ViewModelFactory(
+        accountRepository = context.accountRepository,
+        transactionRepository = context.transactionRepository,
+        categoryRepository = context.categoryRepository,
+        insertTransactionUseCase = InsertTransactionUseCase(
+            context.transactionRepository,
+            context.accountRepository
+        )
+    )
+    val lancamentoViewModel: LancamentoViewModel = viewModel(factory = factory)
 
     Column(
         modifier = Modifier
@@ -53,15 +73,26 @@ fun FluxoScreen(viewModel: FluxoViewModel = viewModel()) {
             verticalArrangement = Arrangement.spacedBy(12.dp),
             contentPadding = PaddingValues(bottom = 16.dp)
         ) {
-            items(uiState.transactions) { transaction ->
-                TransactionItem(transaction, currencyFormatter)
+            items(uiState.transactions) { transactionUi ->
+                TransactionItem(
+                    transactionUi = transactionUi, 
+                    formatter = currencyFormatter,
+                    onEdit = { lancamentoViewModel.showEditSheet(it) },
+                    onDelete = { viewModel.deleteTransaction(it) }
+                )
             }
         }
     }
 }
 
 @Composable
-fun TransactionItem(transaction: FinancialTransaction, formatter: NumberFormat) {
+fun TransactionItem(
+    transactionUi: TransactionUi, 
+    formatter: NumberFormat,
+    onEdit: (FinancialTransaction) -> Unit,
+    onDelete: (FinancialTransaction) -> Unit
+) {
+    val transaction = transactionUi.transaction
     val isTransfer = transaction.tipo == TransactionType.TRANSFERENCIA
     
     val valueColor = when (transaction.tipo) {
@@ -76,47 +107,75 @@ fun TransactionItem(transaction: FinancialTransaction, formatter: NumberFormat) 
         TransactionType.TRANSFERENCIA -> ""
     }
 
+    var showMenu by remember { mutableStateOf(false) }
+
     ElevatedCard(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { showMenu = true },
         colors = CardDefaults.elevatedCardColors(
             containerColor = MaterialTheme.colorScheme.surface
         )
     ) {
-        Row(
-            modifier = Modifier
-                .padding(16.dp)
-                .fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            if (isTransfer) {
-                Icon(
-                    imageVector = Icons.Default.SwapHoriz,
-                    contentDescription = "Transferência",
-                    tint = valueColor,
-                    modifier = Modifier.padding(end = 12.dp)
-                )
-            }
-            
-            Column(modifier = Modifier.weight(1f)) {
+        Box {
+            Row(
+                modifier = Modifier
+                    .padding(16.dp)
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if (isTransfer) {
+                    Icon(
+                        imageVector = Icons.Default.SwapHoriz,
+                        contentDescription = "Transferência",
+                        tint = valueColor,
+                        modifier = Modifier.padding(end = 12.dp)
+                    )
+                }
+                
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = transaction.descricao,
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Text(
+                        text = transactionUi.categoryName,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    )
+                }
+
                 Text(
-                    text = transaction.descricao,
+                    text = "$prefix ${formatter.format(transaction.valor).replace("R$", "").trim()}",
                     style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.SemiBold
-                )
-                Text(
-                    text = if (isTransfer) "Transferência" else "ID Categoria: ${transaction.categoriaId}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    fontWeight = FontWeight.Bold,
+                    color = valueColor
                 )
             }
 
-            Text(
-                text = "$prefix ${formatter.format(transaction.valor).replace("R$", "").trim()}",
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Bold,
-                color = valueColor
-            )
+            DropdownMenu(
+                expanded = showMenu,
+                onDismissRequest = { showMenu = false }
+            ) {
+                DropdownMenuItem(
+                    text = { Text("Editar") },
+                    onClick = {
+                        onEdit(transaction)
+                        showMenu = false
+                    },
+                    leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null) }
+                )
+                DropdownMenuItem(
+                    text = { Text("Excluir") },
+                    onClick = {
+                        onDelete(transaction)
+                        showMenu = false
+                    },
+                    leadingIcon = { Icon(Icons.Default.Delete, contentDescription = null) }
+                )
+            }
         }
     }
 }

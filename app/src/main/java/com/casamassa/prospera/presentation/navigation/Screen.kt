@@ -11,7 +11,7 @@ sealed class Screen(val route: String, val label: String, val icon: ImageVector)
     object Home : Screen("home", "Home", Icons.Default.Home)
     object Fluxo : Screen("fluxo", "Fluxo", Icons.AutoMirrored.Filled.List)
     object Relatorios : Screen("relatorios", "Relatórios", Icons.Default.PieChart)
-    object Configuracoes : Screen("configuracoes", "Ajustes", Icons.Default.Settings)
+    object Configuracoes : Screen("configuracoes", "Configurações", Icons.Default.Settings)
 }
 
 val bottomNavigationItems = listOf(

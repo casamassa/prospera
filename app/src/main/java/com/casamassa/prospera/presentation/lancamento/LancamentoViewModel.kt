@@ -51,6 +51,7 @@ class LancamentoViewModel(
     private val _isSheetVisible = MutableStateFlow(false)
     private val _isSaving = MutableStateFlow(false)
     private val _errorMessage = MutableStateFlow<String?>(null)
+    private val _editingTransaction = MutableStateFlow<FinancialTransaction?>(null)
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val uiState: StateFlow<LancamentoUiState> = combine(
@@ -147,6 +148,19 @@ class LancamentoViewModel(
         _selectedCategoryId.value = categoryId
     }
 
+    fun showEditSheet(transaction: FinancialTransaction) {
+        _editingTransaction.value = transaction
+        _type.value = transaction.tipo
+        _value.value = transaction.valor.toString()
+        _description.value = transaction.descricao
+        _dateMillis.value = transaction.dataTimestamp
+        _selectedAccountId.value = transaction.contaId
+        _selectedTargetAccountId.value = transaction.transferTargetAccountId
+        _selectedCategoryId.value = transaction.categoriaId
+        _isSheetVisible.value = true
+        _errorMessage.value = null
+    }
+
     fun showSheet() {
         _isSheetVisible.value = true
         _errorMessage.value = null
@@ -162,6 +176,7 @@ class LancamentoViewModel(
         _selectedTargetAccountId.value = null
         _selectedCategoryId.value = null
         _errorMessage.value = null
+        _editingTransaction.value = null
     }
 
     fun salvarLancamento() {

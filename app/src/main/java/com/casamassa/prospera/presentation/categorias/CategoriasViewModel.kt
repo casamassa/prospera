@@ -23,6 +23,7 @@ data class CategoryUi(
 
 data class CategoriasUiState(
     val categories: List<CategoryUi> = emptyList(),
+    val selectedTab: Int = 0, // 0 for Despesa, 1 for Receita
     val isDialogVisible: Boolean = false,
     val editingCategory: Category? = null,
     val nameInput: String = "",
@@ -36,23 +37,29 @@ class CategoriasViewModel(
 ) : ViewModel() {
 
     private val _dialogState = MutableStateFlow(DialogState())
+    private val _selectedTab = MutableStateFlow(0)
 
     val uiState: StateFlow<CategoriasUiState> = combine(
         categoryRepository.getAllCategories(),
-        _dialogState
-    ) { allCategories, dState ->
-        val parents = allCategories.filter { it.parentCategoryId == null }
+        _dialogState,
+        _selectedTab
+    ) { allCategories, dState, selectedTab ->
+        val filteredType = if (selectedTab == 0) TransactionType.DESPESA else TransactionType.RECEITA
+        
+        val parents = allCategories.filter { it.parentCategoryId == null && it.tipo == filteredType }
         val categoryUiList = parents.map { parent ->
             CategoryUi(
                 id = parent.id,
                 name = parent.nome,
                 type = parent.tipo,
                 subcategories = allCategories.filter { it.parentCategoryId == parent.id }
+                    .sortedBy { it.nome.uppercase() }
             )
-        }
+        }.sortedBy { it.name.uppercase() }
 
         CategoriasUiState(
             categories = categoryUiList,
+            selectedTab = selectedTab,
             isDialogVisible = dState.isVisible,
             editingCategory = dState.editingCategory,
             nameInput = dState.nameInput,
@@ -65,6 +72,10 @@ class CategoriasViewModel(
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = CategoriasUiState()
     )
+
+    fun onTabChange(index: Int) {
+        _selectedTab.value = index
+    }
 
     fun showAddDialog() {
         _dialogState.value = DialogState(isVisible = true)

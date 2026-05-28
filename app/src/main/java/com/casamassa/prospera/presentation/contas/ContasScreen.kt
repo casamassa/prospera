@@ -6,6 +6,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
@@ -39,12 +40,22 @@ fun ContasScreen(
                     }
                 }
             )
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = { viewModel.showAddDialog() },
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
+            ) {
+                Icon(Icons.Default.Add, contentDescription = "Nova Conta")
+            }
         }
     ) { innerPadding ->
         Box(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
             LazyColumn(
                 modifier = Modifier.fillMaxSize().padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                contentPadding = PaddingValues(bottom = 80.dp)
             ) {
                 items(uiState.accounts) { account ->
                     AccountListItem(
@@ -54,21 +65,6 @@ fun ContasScreen(
                         onDelete = { viewModel.deleteAccount(account) }
                     )
                 }
-                
-                item {
-                    Spacer(modifier = Modifier.height(80.dp)) // Space for the bottom button
-                }
-            }
-
-            Button(
-                onClick = { viewModel.showAddDialog() },
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(16.dp)
-                    .fillMaxWidth()
-                    .height(56.dp)
-            ) {
-                Text("Nova Conta", fontWeight = FontWeight.Bold)
             }
         }
 

@@ -67,13 +67,16 @@ O projeto está dividido em etapas incrementais e controladas para garantir a en
   - Tela Gerenciamento de Contas: CRUD de contas (dados estáticos).
   - Tela Gerenciamento de Categorias/Subcategorias: CRUD de categorias/subcategorias (dados estáticos).
   - BÔNUS: Resolvi criar um pipeline básico de CI/CD com Github Actions neste momento para garantir: Validação de Compilação, Verificação de Lint (Qualidade de Código) e Geração de APK automática.
-- [ ] **Fase 2: Persistência e Regras de Negócio (Em andamento)**
+- [X] **Fase 2: Persistência e Regras de Negócio**
   - Implementação do banco de dados local com Room.
+  - Tela de Home funcionando com dados reais
+  - Tela de Fluxo funcionando com dados reais
   - CRUD completo de Contas Bancárias.
   - CRUD completo de Categorias e Subcategorias.
   - Registro de lançamentos financeiros (Receitas e Despesas).
-- [ ] **Fase 3: Refinamento e Escalabilidade**
   - Transferências entre contas cadastradas.
+- [ ] **Fase 3: Refinamento e Escalabilidade (Em andamento)**
+  - Testes unitários para o pipeline CI
   - Implementação de gráficos de relatórios (Pizza/Barras) na aba dedicada.
   - Preparação para exportação e backup manual dos dados.
 

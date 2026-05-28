@@ -6,6 +6,7 @@ import com.casamassa.prospera.domain.repository.AccountRepository
 import com.casamassa.prospera.domain.repository.CategoryRepository
 import com.casamassa.prospera.domain.repository.TransactionRepository
 import com.casamassa.prospera.domain.use_case.InsertTransactionUseCase
+import com.casamassa.prospera.presentation.contas.ContasViewModel
 import com.casamassa.prospera.presentation.fluxo.FluxoViewModel
 import com.casamassa.prospera.presentation.home.HomeViewModel
 import com.casamassa.prospera.presentation.lancamento.LancamentoViewModel
@@ -31,6 +32,12 @@ class ViewModelFactory(
                     accountRepository = accountRepository,
                     categoryRepository = categoryRepository,
                     insertTransactionUseCase = insertTransactionUseCase
+                ) as T
+            }
+            modelClass.isAssignableFrom(ContasViewModel::class.java) -> {
+                ContasViewModel(
+                    accountRepository = accountRepository,
+                    transactionRepository = transactionRepository
                 ) as T
             }
             else -> throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")

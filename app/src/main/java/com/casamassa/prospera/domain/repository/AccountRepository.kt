@@ -9,4 +9,5 @@ interface AccountRepository {
     fun getAllActiveAccounts(): Flow<List<Account>>
     suspend fun getAccountById(id: Long): Account?
     suspend fun updateAccountBalance(id: Long, newBalance: Double)
+    suspend fun deleteAccount(account: Account)
 }

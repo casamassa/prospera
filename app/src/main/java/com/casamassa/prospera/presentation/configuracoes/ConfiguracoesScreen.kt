@@ -10,17 +10,35 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.casamassa.prospera.ProsperaApplication
+import com.casamassa.prospera.domain.use_case.InsertTransactionUseCase
+import com.casamassa.prospera.presentation.ViewModelFactory
 import com.casamassa.prospera.presentation.contas.ContasScreen
 import com.casamassa.prospera.presentation.categorias.CategoriasScreen
 
 @Composable
 fun ConfiguracoesScreen() {
     var currentScreen by remember { mutableStateOf("config") }
+    val context = LocalContext.current.applicationContext as ProsperaApplication
+    val factory = ViewModelFactory(
+        accountRepository = context.accountRepository,
+        transactionRepository = context.transactionRepository,
+        categoryRepository = context.categoryRepository,
+        insertTransactionUseCase = InsertTransactionUseCase(
+            context.transactionRepository,
+            context.accountRepository
+        )
+    )
 
     when (currentScreen) {
-        "contas" -> ContasScreen(onBack = { currentScreen = "config" })
+        "contas" -> ContasScreen(
+            onBack = { currentScreen = "config" },
+            viewModel = viewModel(factory = factory)
+        )
         "categorias" -> CategoriasScreen(onBack = { currentScreen = "config" })
         else -> {
             Column(

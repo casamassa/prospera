@@ -32,4 +32,8 @@ class AccountRepositoryImpl(
     override suspend fun updateAccountBalance(id: Long, newBalance: Double) {
         dao.updateAccountBalance(id, newBalance)
     }
+
+    override suspend fun deleteAccount(account: Account) {
+        dao.delete(account.toEntity())
+    }
 }

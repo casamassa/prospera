@@ -24,7 +24,7 @@ import java.util.*
 @Composable
 fun ContasScreen(
     onBack: () -> Unit,
-    viewModel: ContasViewModel = viewModel()
+    viewModel: ContasViewModel
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val currencyFormatter = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("pt-BR"))

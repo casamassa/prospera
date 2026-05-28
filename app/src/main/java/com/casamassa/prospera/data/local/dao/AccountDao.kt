@@ -1,6 +1,7 @@
 package com.casamassa.prospera.data.local.dao
 
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
@@ -25,4 +26,7 @@ interface AccountDao {
 
     @Query("UPDATE contas SET saldo_atual = :newBalance WHERE id = :id")
     suspend fun updateAccountBalance(id: Long, newBalance: Double): Int
+
+    @Delete
+    suspend fun delete(account: AccountEntity): Int
 }

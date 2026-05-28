@@ -4,53 +4,60 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.casamassa.prospera.domain.model.Account
 import com.casamassa.prospera.domain.repository.AccountRepository
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 data class HomeUiState(
     val totalBalance: Double = 0.0,
     val accounts: List<Account> = emptyList(),
-    val isLoading: Boolean = true
+    val isLoading: Boolean = false
 )
 
 class HomeViewModel(
     private val accountRepository: AccountRepository
 ) : ViewModel() {
 
+    init {
+        checkAndInitializeAccounts()
+    }
+
     val uiState: StateFlow<HomeUiState> = accountRepository.getAllActiveAccounts()
-        .combine(MutableStateFlow(false)) { accounts, loading ->
-            // Se as contas estiverem vazias, podemos estar no primeiro acesso
-            if (accounts.isEmpty()) {
-                initializeDefaultAccount()
-            }
-            
+        .map { accounts ->
             HomeUiState(
                 totalBalance = accounts.sumOf { it.saldoAtual },
                 accounts = accounts,
-                isLoading = loading
+                isLoading = false
             )
         }.stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            initialValue = HomeUiState()
+            initialValue = HomeUiState(isLoading = true)
         )
 
-    private fun initializeDefaultAccount() {
+    private fun checkAndInitializeAccounts() {
         viewModelScope.launch {
-            // Check again inside coroutine to avoid race conditions
-            // Note: In a robust app, this would be in a Splash/Start Use Case
-            // but for Task 012 requirement we do it here if empty.
-            accountRepository.insertAccount(
-                Account(
-                    nome = "Carteira",
-                    saldoInicial = 0.0,
-                    saldoAtual = 0.0
-                )
-            )
+            try {
+                val accounts = accountRepository.getAllActiveAccounts().first()
+                if (accounts.isEmpty()) {
+                    initializeDefaultAccount()
+                }
+            } catch (e: Exception) {
+                // Flow might have closed or error occurred
+            }
         }
+    }
+
+    private suspend fun initializeDefaultAccount() {
+        accountRepository.insertAccount(
+            Account(
+                nome = "Carteira",
+                saldoInicial = 0.0,
+                saldoAtual = 0.0
+            )
+        )
     }
 }

@@ -16,7 +16,10 @@ import com.casamassa.prospera.presentation.configuracoes.ConfiguracoesScreen
 @Composable
 fun ProsperaNavGraph(navController: NavHostController) {
     val context = LocalContext.current.applicationContext as ProsperaApplication
-    val factory = ViewModelFactory(context.accountRepository)
+    val factory = ViewModelFactory(
+        accountRepository = context.accountRepository,
+        transactionRepository = context.transactionRepository
+    )
 
     NavHost(
         navController = navController,
@@ -26,7 +29,7 @@ fun ProsperaNavGraph(navController: NavHostController) {
             HomeScreen(viewModel = viewModel(factory = factory))
         }
         composable(Screen.Fluxo.route) {
-            FluxoScreen()
+            FluxoScreen(viewModel = viewModel(factory = factory))
         }
         composable(Screen.Relatorios.route) {
             RelatoriosScreen()

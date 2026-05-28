@@ -1,11 +1,16 @@
 package com.casamassa.prospera.presentation.fluxo
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.casamassa.prospera.domain.model.FinancialTransaction
-import com.casamassa.prospera.domain.model.TransactionType
+import com.casamassa.prospera.domain.repository.TransactionRepository
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -14,42 +19,62 @@ data class FluxoUiState(
     val transactions: List<FinancialTransaction> = emptyList()
 )
 
-class FluxoViewModel : ViewModel() {
-    private val _uiState = MutableStateFlow(FluxoUiState())
-    val uiState: StateFlow<FluxoUiState> = _uiState.asStateFlow()
+@OptIn(ExperimentalCoroutinesApi::class)
+class FluxoViewModel(
+    private val transactionRepository: TransactionRepository
+) : ViewModel() {
+    private val _selectedCalendar = MutableStateFlow(Calendar.getInstance())
+    
+    val formattedDate: StateFlow<String> = _selectedCalendar
+        .map { calendar ->
+            val sdf = SimpleDateFormat("MMMM yyyy", Locale.forLanguageTag("pt-BR"))
+            sdf.format(calendar.time).replaceFirstChar { it.uppercase() }
+        }.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = ""
+        )
 
-    init {
-        loadMockTransactions()
-    }
+    val uiState: StateFlow<FluxoUiState> = _selectedCalendar
+        .flatMapLatest { calendar ->
+            val startOfMonth = calendar.clone() as Calendar
+            startOfMonth.set(Calendar.DAY_OF_MONTH, 1)
+            startOfMonth.set(Calendar.HOUR_OF_DAY, 0)
+            startOfMonth.set(Calendar.MINUTE, 0)
+            startOfMonth.set(Calendar.SECOND, 0)
+            startOfMonth.set(Calendar.MILLISECOND, 0)
+            
+            val endOfMonth = calendar.clone() as Calendar
+            endOfMonth.set(Calendar.DAY_OF_MONTH, endOfMonth.getActualMaximum(Calendar.DAY_OF_MONTH))
+            endOfMonth.set(Calendar.HOUR_OF_DAY, 23)
+            endOfMonth.set(Calendar.MINUTE, 59)
+            endOfMonth.set(Calendar.SECOND, 59)
+            endOfMonth.set(Calendar.MILLISECOND, 999)
+            
+            transactionRepository.getTransactionsByDateRange(
+                startOfMonth.timeInMillis,
+                endOfMonth.timeInMillis
+            ).map { transactions ->
+                FluxoUiState(
+                    selectedCalendar = calendar,
+                    transactions = transactions
+                )
+            }
+        }.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = FluxoUiState()
+        )
 
     fun nextMonth() {
-        val nextDate = _uiState.value.selectedCalendar.clone() as Calendar
+        val nextDate = _selectedCalendar.value.clone() as Calendar
         nextDate.add(Calendar.MONTH, 1)
-        _uiState.value = _uiState.value.copy(selectedCalendar = nextDate)
+        _selectedCalendar.value = nextDate
     }
 
     fun previousMonth() {
-        val prevDate = _uiState.value.selectedCalendar.clone() as Calendar
+        val prevDate = _selectedCalendar.value.clone() as Calendar
         prevDate.add(Calendar.MONTH, -1)
-        _uiState.value = _uiState.value.copy(selectedCalendar = prevDate)
-    }
-
-    private fun loadMockTransactions() {
-        val mockData = listOf(
-            FinancialTransaction(1, "Salário Mensal", 5500.00, System.currentTimeMillis(), TransactionType.RECEITA, 1, 1),
-            FinancialTransaction(2, "Supermercado", 850.40, System.currentTimeMillis(), TransactionType.DESPESA, 1, 2),
-            FinancialTransaction(3, "Aluguel", 1200.00, System.currentTimeMillis(), TransactionType.DESPESA, 1, 3),
-            FinancialTransaction(4, "Venda de Notebook", 1500.00, System.currentTimeMillis(), TransactionType.RECEITA, 1, 4),
-            FinancialTransaction(5, "Posto de Gasolina", 220.00, System.currentTimeMillis(), TransactionType.DESPESA, 1, 5),
-            FinancialTransaction(6, "Assinatura Streaming", 55.90, System.currentTimeMillis(), TransactionType.DESPESA, 1, 6),
-            FinancialTransaction(7, "Academia", 110.00, System.currentTimeMillis(), TransactionType.DESPESA, 1, 7)
-        )
-        _uiState.value = _uiState.value.copy(transactions = mockData)
-    }
-
-    fun getFormattedDate(): String {
-        val date = _uiState.value.selectedCalendar.time
-        val sdf = SimpleDateFormat("MMMM yyyy", Locale.forLanguageTag("pt-BR"))
-        return sdf.format(date).replaceFirstChar { it.uppercase() }
+        _selectedCalendar.value = prevDate
     }
 }

@@ -22,6 +22,7 @@ import java.util.*
 @Composable
 fun FluxoScreen(viewModel: FluxoViewModel = viewModel()) {
     val uiState by viewModel.uiState.collectAsState()
+    val formattedDate by viewModel.formattedDate.collectAsState()
     val currencyFormatter = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("pt-BR"))
 
     Column(
@@ -37,7 +38,7 @@ fun FluxoScreen(viewModel: FluxoViewModel = viewModel()) {
 
         // Seletor de Mês
         MonthSelector(
-            formattedDate = viewModel.getFormattedDate(),
+            formattedDate = formattedDate,
             onPreviousMonth = { viewModel.previousMonth() },
             onNextMonth = { viewModel.nextMonth() }
         )

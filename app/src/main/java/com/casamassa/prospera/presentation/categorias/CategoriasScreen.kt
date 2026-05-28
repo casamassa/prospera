@@ -18,7 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.casamassa.prospera.domain.model.Category
 import com.casamassa.prospera.domain.model.TransactionType
-import com.casamassa.prospera.presentation.lancamento.DropdownSelector
+import com.casamassa.prospera.presentation.components.DropdownSelector
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -208,7 +208,7 @@ fun CategoryDialog(
 
                 DropdownSelector(
                     label = "Categoria Pai (Opcional)",
-                    options = parentCategoryOptions,
+                    options = parentCategoryOptions.map { it to it },
                     selectedOption = uiState.selectedParentCategory ?: "Nenhuma (Principal)",
                     onOptionSelected = onParentChange,
                     modifier = Modifier.fillMaxWidth()

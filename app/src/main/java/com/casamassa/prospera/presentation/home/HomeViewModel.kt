@@ -6,10 +6,8 @@ import com.casamassa.prospera.domain.model.Account
 import com.casamassa.prospera.domain.repository.AccountRepository
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 
 data class HomeUiState(
     val totalBalance: Double = 0.0,
@@ -20,10 +18,6 @@ data class HomeUiState(
 class HomeViewModel(
     private val accountRepository: AccountRepository
 ) : ViewModel() {
-
-    init {
-        checkAndInitializeAccounts()
-    }
 
     val uiState: StateFlow<HomeUiState> = accountRepository.getAllActiveAccounts()
         .map { accounts ->
@@ -37,27 +31,4 @@ class HomeViewModel(
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = HomeUiState(isLoading = true)
         )
-
-    private fun checkAndInitializeAccounts() {
-        viewModelScope.launch {
-            try {
-                val accounts = accountRepository.getAllActiveAccounts().first()
-                if (accounts.isEmpty()) {
-                    initializeDefaultAccount()
-                }
-            } catch (e: Exception) {
-                // Flow might have closed or error occurred
-            }
-        }
-    }
-
-    private suspend fun initializeDefaultAccount() {
-        accountRepository.insertAccount(
-            Account(
-                nome = "Carteira",
-                saldoInicial = 0.0,
-                saldoAtual = 0.0
-            )
-        )
-    }
 }

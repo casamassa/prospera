@@ -15,6 +15,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.casamassa.prospera.domain.model.TransactionType
+import com.casamassa.prospera.presentation.components.DropdownSelector
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -28,6 +29,32 @@ fun LancamentoForm(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val dateFormatter = remember { SimpleDateFormat("dd/MM/yyyy", Locale.forLanguageTag("pt-BR")) }
+    
+    var showDatePicker by remember { mutableStateOf(false) }
+
+    if (showDatePicker) {
+        val datePickerState = rememberDatePickerState(
+            initialSelectedDateMillis = uiState.dateMillis
+        )
+        DatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    datePickerState.selectedDateMillis?.let { viewModel.onDateChange(it) }
+                    showDatePicker = false
+                }) {
+                    Text("Confirmar")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDatePicker = false }) {
+                    Text("Cancelar")
+                }
+            }
+        ) {
+            DatePicker(state = datePickerState)
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -120,9 +147,9 @@ fun LancamentoForm(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Data (Simulado)
+        // Data
         OutlinedButton(
-            onClick = { /* Simular DatePicker */ },
+            onClick = { showDatePicker = true },
             modifier = Modifier.fillMaxWidth(),
             contentPadding = PaddingValues(16.dp)
         ) {
@@ -140,77 +167,51 @@ fun LancamentoForm(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Dropdowns (Conta e Categoria) - Refactored to vertical stacking
+        // Dropdowns (Conta e Categoria)
+        val selectedAccountName = uiState.accounts.find { it.id == uiState.selectedAccountId }?.nome ?: "Selecione"
         DropdownSelector(
             label = "Conta",
-            options = viewModel.accounts,
-            selectedOption = uiState.selectedAccount,
+            options = uiState.accounts.map { it.nome to it.id },
+            selectedOption = selectedAccountName,
             onOptionSelected = { viewModel.onAccountChange(it) },
             modifier = Modifier.fillMaxWidth()
         )
         
         Spacer(modifier = Modifier.height(16.dp))
         
+        val selectedCategoryName = uiState.categories.find { it.id == uiState.selectedCategoryId }?.nome ?: "Selecione"
         DropdownSelector(
             label = "Categoria",
-            options = viewModel.categories,
-            selectedOption = uiState.selectedCategory,
+            options = uiState.categories.map { it.nome to it.id },
+            selectedOption = selectedCategoryName,
             onOptionSelected = { viewModel.onCategoryChange(it) },
             modifier = Modifier.fillMaxWidth()
         )
+
+        if (uiState.errorMessage != null) {
+            Text(
+                text = uiState.errorMessage!!,
+                color = MaterialTheme.colorScheme.error,
+                modifier = Modifier.padding(top = 8.dp),
+                style = MaterialTheme.typography.bodySmall
+            )
+        }
 
         Spacer(modifier = Modifier.weight(1f))
 
         // Botão Salvar
         Button(
-            onClick = onClose,
+            onClick = { viewModel.salvarLancamento() },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),
-            shape = MaterialTheme.shapes.medium
+            shape = MaterialTheme.shapes.medium,
+            enabled = !uiState.isSaving
         ) {
-            Text("Salvar", fontSize = 18.sp, fontWeight = FontWeight.Bold)
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun DropdownSelector(
-    label: String,
-    options: List<String>,
-    selectedOption: String,
-    onOptionSelected: (String) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    var expanded by remember { mutableStateOf(false) }
-
-    ExposedDropdownMenuBox(
-        expanded = expanded,
-        onExpandedChange = { expanded = !expanded },
-        modifier = modifier
-    ) {
-        OutlinedTextField(
-            value = selectedOption,
-            onValueChange = {},
-            readOnly = true,
-            label = { Text(label) },
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-            modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryEditable, true),
-            colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
-        )
-        ExposedDropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false }
-        ) {
-            options.forEach { option ->
-                DropdownMenuItem(
-                    text = { Text(option) },
-                    onClick = {
-                        onOptionSelected(option)
-                        expanded = false
-                    }
-                )
+            if (uiState.isSaving) {
+                CircularProgressIndicator(modifier = Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
+            } else {
+                Text("Salvar", fontSize = 18.sp, fontWeight = FontWeight.Bold)
             }
         }
     }

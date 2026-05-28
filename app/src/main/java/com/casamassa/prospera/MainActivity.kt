@@ -11,11 +11,14 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.casamassa.prospera.domain.use_case.InsertTransactionUseCase
+import com.casamassa.prospera.presentation.ViewModelFactory
 import com.casamassa.prospera.presentation.lancamento.LancamentoForm
 import com.casamassa.prospera.presentation.lancamento.LancamentoViewModel
 import com.casamassa.prospera.presentation.navigation.ProsperaNavGraph
@@ -37,9 +40,18 @@ class MainActivity : ComponentActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainApp(
-    lancamentoViewModel: LancamentoViewModel = viewModel()
-) {
+fun MainApp() {
+    val context = LocalContext.current.applicationContext as ProsperaApplication
+    val factory = ViewModelFactory(
+        accountRepository = context.accountRepository,
+        transactionRepository = context.transactionRepository,
+        categoryRepository = context.categoryRepository,
+        insertTransactionUseCase = InsertTransactionUseCase(
+            context.transactionRepository,
+            context.accountRepository
+        )
+    )
+    val lancamentoViewModel: LancamentoViewModel = viewModel(factory = factory)
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination

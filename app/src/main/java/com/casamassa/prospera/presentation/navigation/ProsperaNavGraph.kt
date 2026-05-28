@@ -7,6 +7,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.casamassa.prospera.ProsperaApplication
+import com.casamassa.prospera.domain.use_case.InsertTransactionUseCase
 import com.casamassa.prospera.presentation.ViewModelFactory
 import com.casamassa.prospera.presentation.home.HomeScreen
 import com.casamassa.prospera.presentation.fluxo.FluxoScreen
@@ -18,7 +19,12 @@ fun ProsperaNavGraph(navController: NavHostController) {
     val context = LocalContext.current.applicationContext as ProsperaApplication
     val factory = ViewModelFactory(
         accountRepository = context.accountRepository,
-        transactionRepository = context.transactionRepository
+        transactionRepository = context.transactionRepository,
+        categoryRepository = context.categoryRepository,
+        insertTransactionUseCase = InsertTransactionUseCase(
+            context.transactionRepository,
+            context.accountRepository
+        )
     )
 
     NavHost(

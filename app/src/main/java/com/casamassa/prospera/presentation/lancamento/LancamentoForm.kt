@@ -20,6 +20,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 val Color_Green_Success = Color(0xFF2E7D32)
+val Color_Neutral_Transfer = Color(0xFF1976D2) // Blue for transfers
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -79,23 +80,30 @@ fun LancamentoForm(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Seletor de Tipo (Segmented Buttons)
+        // Seletor de Tipo (Segmented Buttons) - 3 options now
         SingleChoiceSegmentedButtonRow(
             modifier = Modifier.fillMaxWidth()
         ) {
             SegmentedButton(
                 selected = uiState.type == TransactionType.DESPESA,
                 onClick = { viewModel.onTypeChange(TransactionType.DESPESA) },
-                shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2)
+                shape = SegmentedButtonDefaults.itemShape(index = 0, count = 3)
             ) {
                 Text("Despesa")
             }
             SegmentedButton(
                 selected = uiState.type == TransactionType.RECEITA,
                 onClick = { viewModel.onTypeChange(TransactionType.RECEITA) },
-                shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2)
+                shape = SegmentedButtonDefaults.itemShape(index = 1, count = 3)
             ) {
                 Text("Receita")
+            }
+            SegmentedButton(
+                selected = uiState.type == TransactionType.TRANSFERENCIA,
+                onClick = { viewModel.onTypeChange(TransactionType.TRANSFERENCIA) },
+                shape = SegmentedButtonDefaults.itemShape(index = 2, count = 3)
+            ) {
+                Text("Transf.")
             }
         }
 
@@ -114,7 +122,11 @@ fun LancamentoForm(
             textStyle = MaterialTheme.typography.headlineLarge.copy(
                 textAlign = TextAlign.Center,
                 fontWeight = FontWeight.Bold,
-                color = if (uiState.type == TransactionType.DESPESA) MaterialTheme.colorScheme.error else Color_Green_Success
+                color = when (uiState.type) {
+                    TransactionType.DESPESA -> MaterialTheme.colorScheme.error
+                    TransactionType.RECEITA -> Color_Green_Success
+                    TransactionType.TRANSFERENCIA -> Color_Neutral_Transfer
+                }
             ),
             placeholder = {
                 Text(
@@ -129,7 +141,7 @@ fun LancamentoForm(
                 focusedContainerColor = Color.Transparent,
                 unfocusedContainerColor = Color.Transparent,
                 focusedIndicatorColor = MaterialTheme.colorScheme.primary,
-                unfocusedIndicatorColor = MaterialTheme.colorScheme.outlineVariant
+                unfocusedIndicatorColor = MaterialTheme.outlineVariantStacking()
             ),
             singleLine = true
         )
@@ -167,10 +179,10 @@ fun LancamentoForm(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Dropdowns (Conta e Categoria)
+        // Dropdowns
         val selectedAccountName = uiState.accounts.find { it.id == uiState.selectedAccountId }?.nome ?: "Selecione"
         DropdownSelector(
-            label = "Conta",
+            label = if (uiState.type == TransactionType.TRANSFERENCIA) "Conta de Origem" else "Conta",
             options = uiState.accounts.map { it.nome to it.id },
             selectedOption = selectedAccountName,
             onOptionSelected = { viewModel.onAccountChange(it) },
@@ -179,14 +191,27 @@ fun LancamentoForm(
         
         Spacer(modifier = Modifier.height(16.dp))
         
-        val selectedCategoryName = uiState.categories.find { it.id == uiState.selectedCategoryId }?.nome ?: "Selecione"
-        DropdownSelector(
-            label = "Categoria",
-            options = uiState.categories.map { it.nome to it.id },
-            selectedOption = selectedCategoryName,
-            onOptionSelected = { viewModel.onCategoryChange(it) },
-            modifier = Modifier.fillMaxWidth()
-        )
+        if (uiState.type == TransactionType.TRANSFERENCIA) {
+            // Conta de Destino
+            val selectedTargetAccountName = uiState.targetAccounts.find { it.id == uiState.selectedTargetAccountId }?.nome ?: "Selecione"
+            DropdownSelector(
+                label = "Conta de Destino",
+                options = uiState.targetAccounts.map { it.nome to it.id },
+                selectedOption = selectedTargetAccountName,
+                onOptionSelected = { viewModel.onTargetAccountChange(it) },
+                modifier = Modifier.fillMaxWidth()
+            )
+        } else {
+            // Categoria
+            val selectedCategoryName = uiState.categories.find { it.id == uiState.selectedCategoryId }?.nome ?: "Selecione"
+            DropdownSelector(
+                label = "Categoria",
+                options = uiState.categories.map { it.nome to it.id },
+                selectedOption = selectedCategoryName,
+                onOptionSelected = { viewModel.onCategoryChange(it) },
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
 
         if (uiState.errorMessage != null) {
             Text(
@@ -216,3 +241,6 @@ fun LancamentoForm(
         }
     }
 }
+
+@Composable
+fun MaterialTheme.outlineVariantStacking() = colorScheme.outlineVariant

@@ -13,9 +13,9 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.util.Calendar
@@ -26,9 +26,11 @@ data class LancamentoUiState(
     val description: String = "",
     val dateMillis: Long = Calendar.getInstance().timeInMillis,
     val selectedAccountId: Long? = null,
+    val selectedTargetAccountId: Long? = null,
     val selectedCategoryId: Long? = null,
     val isSheetVisible: Boolean = false,
     val accounts: List<Account> = emptyList(),
+    val targetAccounts: List<Account> = emptyList(),
     val categories: List<Category> = emptyList(),
     val isSaving: Boolean = false,
     val errorMessage: String? = null
@@ -44,6 +46,7 @@ class LancamentoViewModel(
     private val _description = MutableStateFlow("")
     private val _dateMillis = MutableStateFlow(Calendar.getInstance().timeInMillis)
     private val _selectedAccountId = MutableStateFlow<Long?>(null)
+    private val _selectedTargetAccountId = MutableStateFlow<Long?>(null)
     private val _selectedCategoryId = MutableStateFlow<Long?>(null)
     private val _isSheetVisible = MutableStateFlow(false)
     private val _isSaving = MutableStateFlow(false)
@@ -52,29 +55,40 @@ class LancamentoViewModel(
     @OptIn(ExperimentalCoroutinesApi::class)
     val uiState: StateFlow<LancamentoUiState> = combine(
         _type, _value, _description, _dateMillis, 
-        _selectedAccountId, _selectedCategoryId, _isSheetVisible,
-        _isSaving, _errorMessage,
+        _selectedAccountId, _selectedTargetAccountId, _selectedCategoryId, 
+        _isSheetVisible, _isSaving, _errorMessage,
         accountRepository.getAllActiveAccounts(),
-        _type.flatMapLatest { categoryRepository.getCategoriesByType(it) }
+        _type.flatMapLatest { type ->
+            if (type == TransactionType.TRANSFERENCIA) flowOf(emptyList())
+            else categoryRepository.getCategoriesByType(type)
+        }
     ) { params ->
         val type = params[0] as TransactionType
         val value = params[1] as String
         val description = params[2] as String
         val dateMillis = params[3] as Long
         val selectedAccountId = params[4] as Long?
-        val selectedCategoryId = params[5] as Long?
-        val isSheetVisible = params[6] as Boolean
-        val isSaving = params[7] as Boolean
-        val errorMessage = params[8] as String?
-        val accounts = params[9] as List<Account>
-        val categories = params[10] as List<Category>
+        val selectedTargetAccountId = params[5] as Long?
+        val selectedCategoryId = params[6] as Long?
+        val isSheetVisible = params[7] as Boolean
+        val isSaving = params[8] as Boolean
+        val errorMessage = params[9] as String?
+        val accounts = params[10] as List<Account>
+        val categories = params[11] as List<Category>
 
-        // Auto-select first account/category if none selected
+        // Auto-select first account if none selected
         if (selectedAccountId == null && accounts.isNotEmpty()) {
             _selectedAccountId.value = accounts.first().id
         }
-        if (selectedCategoryId == null && categories.isNotEmpty()) {
+        
+        // Auto-select first category if none selected and not transfer
+        if (type != TransactionType.TRANSFERENCIA && selectedCategoryId == null && categories.isNotEmpty()) {
             _selectedCategoryId.value = categories.first().id
+        }
+
+        val targetAccounts = accounts.filter { it.id != selectedAccountId }
+        if (type == TransactionType.TRANSFERENCIA && selectedTargetAccountId == null && targetAccounts.isNotEmpty()) {
+            _selectedTargetAccountId.value = targetAccounts.first().id
         }
 
         LancamentoUiState(
@@ -83,11 +97,13 @@ class LancamentoViewModel(
             description = description,
             dateMillis = dateMillis,
             selectedAccountId = selectedAccountId,
+            selectedTargetAccountId = selectedTargetAccountId,
             selectedCategoryId = selectedCategoryId,
             isSheetVisible = isSheetVisible,
             isSaving = isSaving,
             errorMessage = errorMessage,
             accounts = accounts,
+            targetAccounts = targetAccounts,
             categories = categories
         )
     }.stateIn(
@@ -98,11 +114,11 @@ class LancamentoViewModel(
 
     fun onTypeChange(type: TransactionType) {
         _type.value = type
-        _selectedCategoryId.value = null // Reset category as they depend on type
+        _selectedCategoryId.value = null
+        _selectedTargetAccountId.value = null
     }
 
     fun onValueChange(value: String) {
-        // Basic validation for decimal input
         if (value.isEmpty() || value.matches(Regex("""^\d*[.,]?\d{0,2}$"""))) {
             _value.value = value.replace(",", ".")
         }
@@ -118,6 +134,13 @@ class LancamentoViewModel(
 
     fun onAccountChange(accountId: Long) {
         _selectedAccountId.value = accountId
+        if (_selectedTargetAccountId.value == accountId) {
+            _selectedTargetAccountId.value = null
+        }
+    }
+
+    fun onTargetAccountChange(accountId: Long) {
+        _selectedTargetAccountId.value = accountId
     }
 
     fun onCategoryChange(categoryId: Long) {
@@ -136,6 +159,7 @@ class LancamentoViewModel(
         _type.value = TransactionType.DESPESA
         _dateMillis.value = Calendar.getInstance().timeInMillis
         _selectedAccountId.value = null
+        _selectedTargetAccountId.value = null
         _selectedCategoryId.value = null
         _errorMessage.value = null
     }
@@ -151,7 +175,22 @@ class LancamentoViewModel(
             return
         }
         val accountId = _selectedAccountId.value ?: return
-        val categoryId = _selectedCategoryId.value ?: return
+        
+        if (_type.value == TransactionType.TRANSFERENCIA) {
+            if (_selectedTargetAccountId.value == null) {
+                _errorMessage.value = "Conta de destino é obrigatória"
+                return
+            }
+            if (_selectedTargetAccountId.value == accountId) {
+                _errorMessage.value = "Conta de destino deve ser diferente da origem"
+                return
+            }
+        } else {
+            if (_selectedCategoryId.value == null) {
+                _errorMessage.value = "Categoria é obrigatória"
+                return
+            }
+        }
 
         viewModelScope.launch {
             _isSaving.value = true
@@ -161,7 +200,8 @@ class LancamentoViewModel(
                 dataTimestamp = _dateMillis.value,
                 tipo = _type.value,
                 contaId = accountId,
-                categoriaId = categoryId
+                categoriaId = if (_type.value == TransactionType.TRANSFERENCIA) null else _selectedCategoryId.value,
+                transferTargetAccountId = if (_type.value == TransactionType.TRANSFERENCIA) _selectedTargetAccountId.value else null
             )
             
             val result = insertTransactionUseCase(transaction)

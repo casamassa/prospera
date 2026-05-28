@@ -12,19 +12,33 @@ class InsertTransactionUseCase(
     suspend operator fun invoke(transaction: FinancialTransaction): Result<Long> {
         return try {
             val account = accountRepository.getAccountById(transaction.contaId)
-                ?: return Result.failure(Exception("Conta não encontrada"))
+                ?: return Result.failure(Exception("Conta de origem não encontrada"))
 
-            val newBalance = if (transaction.tipo == TransactionType.RECEITA) {
-                account.saldoAtual + transaction.valor
+            if (transaction.tipo == TransactionType.TRANSFERENCIA) {
+                val targetAccountId = transaction.transferTargetAccountId
+                    ?: return Result.failure(Exception("Conta de destino não informada para transferência"))
+                
+                val targetAccount = accountRepository.getAccountById(targetAccountId)
+                    ?: return Result.failure(Exception("Conta de destino não encontrada"))
+
+                // Atomic operation logic
+                // In a real scenario, this block should be wrapped in a database transaction.
+                // For this task, we will implement the logic here.
+                val id = transactionRepository.insertTransaction(transaction)
+                accountRepository.updateAccountBalance(transaction.contaId, account.saldoAtual - transaction.valor)
+                accountRepository.updateAccountBalance(targetAccountId, targetAccount.saldoAtual + transaction.valor)
+                Result.success(id)
             } else {
-                account.saldoAtual - transaction.valor
-            }
+                val newBalance = if (transaction.tipo == TransactionType.RECEITA) {
+                    account.saldoAtual + transaction.valor
+                } else {
+                    account.saldoAtual - transaction.valor
+                }
 
-            // In a real scenario, this should be an atomic transaction
-            val id = transactionRepository.insertTransaction(transaction)
-            accountRepository.updateAccountBalance(transaction.contaId, newBalance)
-            
-            Result.success(id)
+                val id = transactionRepository.insertTransaction(transaction)
+                accountRepository.updateAccountBalance(transaction.contaId, newBalance)
+                Result.success(id)
+            }
         } catch (e: Exception) {
             Result.failure(e)
         }

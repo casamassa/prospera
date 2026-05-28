@@ -3,6 +3,8 @@ package com.casamassa.prospera.presentation.fluxo
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -60,9 +62,19 @@ fun FluxoScreen(viewModel: FluxoViewModel = viewModel()) {
 
 @Composable
 fun TransactionItem(transaction: FinancialTransaction, formatter: NumberFormat) {
-    val isRevenue = transaction.tipo == TransactionType.RECEITA
-    val valueColor = if (isRevenue) Color(0xFF2E7D32) else MaterialTheme.colorScheme.error
-    val prefix = if (isRevenue) "+" else "-"
+    val isTransfer = transaction.tipo == TransactionType.TRANSFERENCIA
+    
+    val valueColor = when (transaction.tipo) {
+        TransactionType.RECEITA -> Color(0xFF2E7D32)
+        TransactionType.DESPESA -> MaterialTheme.colorScheme.error
+        TransactionType.TRANSFERENCIA -> Color(0xFF1976D2)
+    }
+    
+    val prefix = when (transaction.tipo) {
+        TransactionType.RECEITA -> "+"
+        TransactionType.DESPESA -> "-"
+        TransactionType.TRANSFERENCIA -> ""
+    }
 
     ElevatedCard(
         modifier = Modifier.fillMaxWidth(),
@@ -77,6 +89,15 @@ fun TransactionItem(transaction: FinancialTransaction, formatter: NumberFormat) 
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
+            if (isTransfer) {
+                Icon(
+                    imageVector = Icons.Default.SwapHoriz,
+                    contentDescription = "Transferência",
+                    tint = valueColor,
+                    modifier = Modifier.padding(end = 12.dp)
+                )
+            }
+            
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = transaction.descricao,
@@ -84,7 +105,7 @@ fun TransactionItem(transaction: FinancialTransaction, formatter: NumberFormat) 
                     fontWeight = FontWeight.SemiBold
                 )
                 Text(
-                    text = "ID Categoria: ${transaction.categoriaId}",
+                    text = if (isTransfer) "Transferência" else "ID Categoria: ${transaction.categoriaId}",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                 )

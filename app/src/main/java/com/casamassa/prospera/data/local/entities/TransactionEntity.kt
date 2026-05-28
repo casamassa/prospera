@@ -41,6 +41,6 @@ data class TransactionEntity(
     @ColumnInfo(name = "data_timestamp") val dataTimestamp: Long,
     @ColumnInfo(name = "tipo") val tipo: String, // "RECEITA" ou "DESPESA"
     @ColumnInfo(name = "conta_id") val contaId: Long,
-    @ColumnInfo(name = "categoria_id") val categoriaId: Long,
+    @ColumnInfo(name = "categoria_id") val categoriaId: Long? = null,
     @ColumnInfo(name = "transfer_target_account_id") val transferTargetAccountId: Long? = null
 )

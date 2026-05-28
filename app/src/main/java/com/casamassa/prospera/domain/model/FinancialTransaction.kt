@@ -7,6 +7,6 @@ data class FinancialTransaction(
     val dataTimestamp: Long,
     val tipo: TransactionType,
     val contaId: Long,
-    val categoriaId: Long,
+    val categoriaId: Long? = null,
     val transferTargetAccountId: Long? = null
 )

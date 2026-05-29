@@ -6,6 +6,7 @@ import com.casamassa.prospera.domain.model.FinancialTransaction
 import com.casamassa.prospera.domain.model.TransactionType
 import com.casamassa.prospera.domain.repository.CategoryRepository
 import com.casamassa.prospera.domain.repository.TransactionRepository
+import com.casamassa.prospera.domain.use_case.DeleteTransactionUseCase
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -32,7 +33,8 @@ data class FluxoUiState(
 @OptIn(ExperimentalCoroutinesApi::class)
 class FluxoViewModel(
     private val transactionRepository: TransactionRepository,
-    private val categoryRepository: CategoryRepository
+    private val categoryRepository: CategoryRepository,
+    private val deleteTransactionUseCase: DeleteTransactionUseCase
 ) : ViewModel() {
     private val _selectedCalendar = MutableStateFlow(Calendar.getInstance())
     
@@ -116,10 +118,7 @@ class FluxoViewModel(
 
     fun deleteTransaction(transaction: FinancialTransaction) {
         viewModelScope.launch {
-            transactionRepository.deleteTransaction(transaction)
-            // Note: We might need to revert the balance update if delete is permanent.
-            // But usually we should have a RevertTransactionUseCase.
-            // For now, let's just delete the record as per Task 018.
+            deleteTransactionUseCase(transaction)
         }
     }
 }

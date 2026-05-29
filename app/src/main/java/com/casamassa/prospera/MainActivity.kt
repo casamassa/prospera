@@ -17,6 +17,7 @@ import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.casamassa.prospera.domain.use_case.DeleteTransactionUseCase
 import com.casamassa.prospera.domain.use_case.InsertTransactionUseCase
 import com.casamassa.prospera.presentation.ViewModelFactory
 import com.casamassa.prospera.presentation.lancamento.LancamentoForm
@@ -47,6 +48,10 @@ fun MainApp() {
         transactionRepository = context.transactionRepository,
         categoryRepository = context.categoryRepository,
         insertTransactionUseCase = InsertTransactionUseCase(
+            context.transactionRepository,
+            context.accountRepository
+        ),
+        deleteTransactionUseCase = DeleteTransactionUseCase(
             context.transactionRepository,
             context.accountRepository
         )
@@ -104,7 +109,11 @@ fun MainApp() {
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            ProsperaNavGraph(navController = navController)
+            ProsperaNavGraph(
+                navController = navController,
+                factory = factory,
+                lancamentoViewModel = lancamentoViewModel
+            )
         }
 
         // Modal Bottom Sheet para Lançamento

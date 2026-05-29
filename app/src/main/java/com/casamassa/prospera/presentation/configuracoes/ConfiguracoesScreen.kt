@@ -15,6 +15,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.casamassa.prospera.ProsperaApplication
+import com.casamassa.prospera.domain.use_case.DeleteTransactionUseCase
 import com.casamassa.prospera.domain.use_case.InsertTransactionUseCase
 import com.casamassa.prospera.presentation.ViewModelFactory
 import com.casamassa.prospera.presentation.contas.ContasScreen
@@ -29,6 +30,10 @@ fun ConfiguracoesScreen() {
         transactionRepository = context.transactionRepository,
         categoryRepository = context.categoryRepository,
         insertTransactionUseCase = InsertTransactionUseCase(
+            context.transactionRepository,
+            context.accountRepository
+        ),
+        deleteTransactionUseCase = DeleteTransactionUseCase(
             context.transactionRepository,
             context.accountRepository
         )

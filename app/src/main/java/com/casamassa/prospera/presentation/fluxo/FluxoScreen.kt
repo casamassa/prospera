@@ -29,23 +29,13 @@ import java.text.NumberFormat
 import java.util.*
 
 @Composable
-fun FluxoScreen(viewModel: FluxoViewModel) {
+fun FluxoScreen(
+    viewModel: FluxoViewModel,
+    lancamentoViewModel: LancamentoViewModel
+) {
     val uiState by viewModel.uiState.collectAsState()
     val formattedDate by viewModel.formattedDate.collectAsState()
     val currencyFormatter = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("pt-BR"))
-
-    // We need LancamentoViewModel to trigger the Edit sheet
-    val context = LocalContext.current.applicationContext as ProsperaApplication
-    val factory = ViewModelFactory(
-        accountRepository = context.accountRepository,
-        transactionRepository = context.transactionRepository,
-        categoryRepository = context.categoryRepository,
-        insertTransactionUseCase = InsertTransactionUseCase(
-            context.transactionRepository,
-            context.accountRepository
-        )
-    )
-    val lancamentoViewModel: LancamentoViewModel = viewModel(factory = factory)
 
     Column(
         modifier = Modifier

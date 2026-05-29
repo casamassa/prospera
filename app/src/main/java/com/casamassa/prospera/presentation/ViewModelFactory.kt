@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModelProvider
 import com.casamassa.prospera.domain.repository.AccountRepository
 import com.casamassa.prospera.domain.repository.CategoryRepository
 import com.casamassa.prospera.domain.repository.TransactionRepository
+import com.casamassa.prospera.domain.use_case.DeleteTransactionUseCase
 import com.casamassa.prospera.domain.use_case.InsertTransactionUseCase
 import com.casamassa.prospera.presentation.categorias.CategoriasViewModel
 import com.casamassa.prospera.presentation.contas.ContasViewModel
@@ -16,7 +17,8 @@ class ViewModelFactory(
     private val accountRepository: AccountRepository,
     private val transactionRepository: TransactionRepository,
     private val categoryRepository: CategoryRepository,
-    private val insertTransactionUseCase: InsertTransactionUseCase
+    private val insertTransactionUseCase: InsertTransactionUseCase,
+    private val deleteTransactionUseCase: DeleteTransactionUseCase
 ) : ViewModelProvider.Factory {
 
     @Suppress("UNCHECKED_CAST")
@@ -26,7 +28,7 @@ class ViewModelFactory(
                 HomeViewModel(accountRepository) as T
             }
             modelClass.isAssignableFrom(FluxoViewModel::class.java) -> {
-                FluxoViewModel(transactionRepository, categoryRepository) as T
+                FluxoViewModel(transactionRepository, categoryRepository, deleteTransactionUseCase) as T
             }
             modelClass.isAssignableFrom(LancamentoViewModel::class.java) -> {
                 LancamentoViewModel(

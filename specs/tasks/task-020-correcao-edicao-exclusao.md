@@ -1,29 +1,22 @@
-# Task 020: Correção do Fluxo de Edição e Estorno de Saldo na Exclusão
+# Task 020: Correção Arquitetural do Fluxo de Edição e Exclusão de Lançamentos
 
 ## Contexto
-Corrigir a comunicação entre a listagem de lançamentos e o formulário para viabilizar a edição, e implementar a regra de negócio para estornar o saldo da conta quando um lançamento for excluído.
+Corrigir os desvios arquiteturais nas operações de Edição e Exclusão de lançamentos. Garantir que o ViewModel utilize obrigatoriamente os Casos de Uso (UseCases) da camada Domain em vez de acessar o Repositório diretamente, viabilizando o estorno correto de saldos.
 
-## Especificação Técnica
+## Especificação Técnica e Correções
 
-### 1. Acionamento da Edição (UI & State)
-- Na `FluxoScreen.kt`, ao clicar em "Editar", o estado que controla a exibição do `LancamentoForm` (ModalBottomSheet) deve ser ativado passando o objeto do `Lancamento` selecionado.
-- No `LancamentoForm.kt`, certifique-se de que se o lançamento recebido para edição não for nulo, os campos de Valor, Descrição, Conta e Categoria sejam pré-preenchidos com os dados existentes.
-- Ao clicar em "Salvar" estando em modo de edição, o repositório deve executar um `UPDATE` no registro existente (mantendo o mesmo ID) em vez de criar um novo.
+### 1. Correção do Fluxo de Exclusão (Recálculo de Saldo)
+- **Ajuste no `FluxoViewModel.kt`:** Identificar a função `deleteTransaction`. Remover a chamada direta ao `transactionRepository.deleteTransaction`.
+- **Injeção do UseCase:** Injetar o `DeleteTransactionUseCase` no construtor do `FluxoViewModel`.
+- **Conexão:** Fazer a função `deleteTransaction` invocar o método `invoke(transaction)` do `DeleteTransactionUseCase`, garantindo que a lógica de transação e o método `revertBalance` contidos no UseCase sejam executados antes da exclusão física.
 
-### 2. Estorno de Saldo na Exclusão (Regra de Negócio)
-- Criar ou ajustar o caso de uso de exclusão (ex: `DeleteTransactionUseCase.kt`).
-- **Regra do Estorno:** Antes de deletar o lançamento do banco de dados, verifique o seu Tipo (Receita ou Despesa) e o seu Valor:
-    - Se era uma **Despesa**, o valor deve ser **somado** de volta ao saldo da conta correspondente.
-    - Se era uma **Receita**, o valor deve ser **subtraído** do saldo da conta correspondente.
-    - Se era uma **Transferência**, o valor deve ser **somado** na conta de origem e **subtraído** na conta de destino.
-- A atualização do saldo e a remoção física do lançamento do banco devem rodar obrigatoriamente dentro de uma transação (`@Transaction`) do Room para garantir a atomicidade.
-
-### 3. Mudança no label do Bottom Menu Bar
-- Alterar a opção "Configurações" do Bottom Menu Bar para "Menu" 
+### 2. Correção do Fluxo de Edição (Abertura do Formulário e Persistência)
+- **Ajuste no `FluxoScreen.kt`:** Ao clicar na opção "Editar" do menu de um lançamento, garantir que o objeto `FinancialTransaction` correspondente seja capturado e que o estado de exibição do formulário (`LancamentoForm`) seja ativado.
+- **Passagem de Parâmetro:** O componente `LancamentoForm` deve receber este lançamento selecionado como parâmetro (ex: `lancamento = transactionToEdit`).
+- **Pré-preenchimento e Salvamento:** No formulário, se um lançamento for recebido para edição, os campos de estado (Valor, Descrição, Conta, Categoria) devem ser pré-preenchidos. Ao salvar, se o lançamento contiver um ID válido (diferente de zero), o sistema deve atualizar o registro existente (executar `UPDATE` ou UseCase de edição correspondente) em vez de gerar um novo ID (executar `INSERT`).
 
 ## Critérios de Aceitação
-- [ ] Clicar em "Editar" abre o formulário com todos os dados do lançamento preenchidos.
-- [ ] Salvar a edição altera o lançamento atual sem duplicá-lo no histórico.
-- [ ] Excluir uma despesa devolve o dinheiro ao saldo da conta reativamente.
-- [ ] Excluir uma receita abate o valor do saldo da conta reativamente.
-- [ ] Bottom Menu Bar atualiza o label para Menu.
+- [X] O `FluxoViewModel` delega a exclusão exclusivamente ao `DeleteTransactionUseCase`.
+- [X] Excluir qualquer tipo de lançamento (Receita, Despesa ou Transferência) atualiza reativamente o saldo da conta associada na interface através do estorno matemático.
+- [X] Clicar em "Editar" na listagem abre com sucesso a folha do formulário com os dados preenchidos.
+- [X] Salvar um lançamento editado atualiza o registro original no banco de dados Room sem duplicá-lo na lista.

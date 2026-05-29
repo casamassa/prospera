@@ -14,19 +14,14 @@ import com.casamassa.prospera.presentation.fluxo.FluxoScreen
 import com.casamassa.prospera.presentation.relatorios.RelatoriosScreen
 import com.casamassa.prospera.presentation.configuracoes.ConfiguracoesScreen
 
-@Composable
-fun ProsperaNavGraph(navController: NavHostController) {
-    val context = LocalContext.current.applicationContext as ProsperaApplication
-    val factory = ViewModelFactory(
-        accountRepository = context.accountRepository,
-        transactionRepository = context.transactionRepository,
-        categoryRepository = context.categoryRepository,
-        insertTransactionUseCase = InsertTransactionUseCase(
-            context.transactionRepository,
-            context.accountRepository
-        )
-    )
+import com.casamassa.prospera.presentation.lancamento.LancamentoViewModel
 
+@Composable
+fun ProsperaNavGraph(
+    navController: NavHostController,
+    factory: ViewModelFactory,
+    lancamentoViewModel: LancamentoViewModel
+) {
     NavHost(
         navController = navController,
         startDestination = Screen.Home.route
@@ -35,7 +30,10 @@ fun ProsperaNavGraph(navController: NavHostController) {
             HomeScreen(viewModel = viewModel(factory = factory))
         }
         composable(Screen.Fluxo.route) {
-            FluxoScreen(viewModel = viewModel(factory = factory))
+            FluxoScreen(
+                viewModel = viewModel(factory = factory),
+                lancamentoViewModel = lancamentoViewModel
+            )
         }
         composable(Screen.Relatorios.route) {
             RelatoriosScreen()

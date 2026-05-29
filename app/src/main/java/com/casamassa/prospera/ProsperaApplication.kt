@@ -53,6 +53,6 @@ class ProsperaApplication : Application() {
 
         accountRepository = AccountRepositoryImpl(database.accountDao())
         categoryRepository = CategoryRepositoryImpl(database.categoryDao())
-        transactionRepository = TransactionRepositoryImpl(database.transactionDao())
+        transactionRepository = TransactionRepositoryImpl(database)
     }
 }

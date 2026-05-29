@@ -11,11 +11,13 @@ class DeleteTransactionUseCase(
 ) {
     suspend operator fun invoke(transaction: FinancialTransaction): Result<Unit> {
         return try {
-            // Revert balance using the same logic as InsertTransactionUseCase
-            revertBalance(transaction)
-            
-            // Delete record
-            transactionRepository.deleteTransaction(transaction)
+            transactionRepository.runInTransaction {
+                // Revert balance using the same logic as InsertTransactionUseCase
+                revertBalance(transaction)
+                
+                // Delete record
+                transactionRepository.deleteTransaction(transaction)
+            }
             
             Result.success(Unit)
         } catch (e: Exception) {

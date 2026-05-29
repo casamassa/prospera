@@ -1,5 +1,7 @@
 package com.casamassa.prospera.data.repository
 
+import androidx.room.withTransaction
+import com.casamassa.prospera.data.local.database.AppDatabase
 import com.casamassa.prospera.data.local.dao.TransactionDao
 import com.casamassa.prospera.data.mapper.toDomain
 import com.casamassa.prospera.data.mapper.toEntity
@@ -9,8 +11,10 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
 class TransactionRepositoryImpl(
-    private val dao: TransactionDao
+    private val database: AppDatabase
 ) : TransactionRepository {
+    private val dao = database.transactionDao()
+
     override suspend fun insertTransaction(transaction: FinancialTransaction): Long {
         return dao.insert(transaction.toEntity())
     }
@@ -36,6 +40,12 @@ class TransactionRepositoryImpl(
     override fun getTransactionsByAccount(accountId: Long): Flow<List<FinancialTransaction>> {
         return dao.getTransactionsByAccount(accountId).map { entities ->
             entities.map { it.toDomain() }
+        }
+    }
+
+    override suspend fun <R> runInTransaction(block: suspend () -> R): R {
+        return database.withTransaction {
+            block()
         }
     }
 }

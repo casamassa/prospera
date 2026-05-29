@@ -15,30 +15,30 @@ class InsertTransactionUseCase(
 ) {
     suspend operator fun invoke(transaction: FinancialTransaction): Result<Long> {
         return try {
-            // 1. If editing, revert old transaction effect first
-            if (transaction.id != 0L) {
-                val oldTransaction = transactionRepository.getTransactionById(transaction.id)
-                if (oldTransaction != null) {
-                    revertBalance(oldTransaction)
+            transactionRepository.runInTransaction {
+                // 1. If editing, revert old transaction effect first
+                if (transaction.id != 0L) {
+                    val oldTransaction = transactionRepository.getTransactionById(transaction.id)
+                    if (oldTransaction != null) {
+                        revertBalance(oldTransaction)
+                    }
                 }
-            }
 
-            // 2. Apply new transaction rule
-            if (transaction.tipo == TransactionType.TRANSFERENCIA) {
-                applyTransfer(transaction)
-            } else {
-                applyRegularTransaction(transaction)
-            }
+                // 2. Apply new transaction rule
+                if (transaction.tipo == TransactionType.TRANSFERENCIA) {
+                    applyTransfer(transaction)
+                } else {
+                    applyRegularTransaction(transaction)
+                }
 
-            // 3. Save to database
-            val id = if (transaction.id == 0L) {
-                transactionRepository.insertTransaction(transaction)
-            } else {
-                transactionRepository.updateTransaction(transaction)
-                transaction.id
-            }
-            
-            Result.success(id)
+                // 3. Save to database
+                if (transaction.id == 0L) {
+                    transactionRepository.insertTransaction(transaction)
+                } else {
+                    transactionRepository.updateTransaction(transaction)
+                    transaction.id
+                }
+            }.let { id -> Result.success(id) }
         } catch (e: Exception) {
             Result.failure(e)
         }

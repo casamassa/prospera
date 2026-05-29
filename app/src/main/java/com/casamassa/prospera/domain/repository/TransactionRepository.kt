@@ -10,4 +10,5 @@ interface TransactionRepository {
     suspend fun getTransactionById(id: Long): FinancialTransaction?
     fun getTransactionsByDateRange(startMillis: Long, endMillis: Long): Flow<List<FinancialTransaction>>
     fun getTransactionsByAccount(accountId: Long): Flow<List<FinancialTransaction>>
+    suspend fun <R> runInTransaction(block: suspend () -> R): R
 }

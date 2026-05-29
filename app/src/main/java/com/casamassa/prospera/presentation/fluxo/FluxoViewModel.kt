@@ -27,6 +27,9 @@ data class TransactionUi(
 data class FluxoUiState(
     val selectedCalendar: Calendar = Calendar.getInstance(),
     val transactions: List<TransactionUi> = emptyList(),
+    val totalRevenue: Double = 0.0,
+    val totalExpense: Double = 0.0,
+    val totalBalance: Double = 0.0,
     val isLoading: Boolean = false
 )
 
@@ -74,7 +77,16 @@ class FluxoViewModel(
     ) { transactions, categories, calendar ->
         val categoryMap = categories.associateBy { it.id }
         
+        var revenue = 0.0
+        var expense = 0.0
+
         val uiTransactions = transactions.map { transaction ->
+            if (transaction.tipo == TransactionType.RECEITA) {
+                revenue += transaction.valor
+            } else if (transaction.tipo == TransactionType.DESPESA) {
+                expense += transaction.valor
+            }
+
             val category = categoryMap[transaction.categoriaId]
             val categoryName = if (transaction.tipo == TransactionType.TRANSFERENCIA) {
                 "Transferência"
@@ -96,6 +108,9 @@ class FluxoViewModel(
         FluxoUiState(
             selectedCalendar = calendar,
             transactions = uiTransactions,
+            totalRevenue = revenue,
+            totalExpense = expense,
+            totalBalance = revenue - expense,
             isLoading = false
         )
     }.stateIn(

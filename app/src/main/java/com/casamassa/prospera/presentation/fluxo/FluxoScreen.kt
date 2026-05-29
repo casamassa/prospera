@@ -17,6 +17,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.casamassa.prospera.ProsperaApplication
 import com.casamassa.prospera.domain.model.FinancialTransaction
@@ -55,7 +56,12 @@ fun FluxoScreen(
             onNextMonth = { viewModel.nextMonth() }
         )
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Resumo do Mês
+        MonthlySummary(uiState, currencyFormatter)
+
+        Spacer(modifier = Modifier.height(16.dp))
 
         // Listagem de Lançamentos
         LazyColumn(
@@ -72,6 +78,53 @@ fun FluxoScreen(
                 )
             }
         }
+    }
+}
+
+@Composable
+fun MonthlySummary(uiState: FluxoUiState, formatter: NumberFormat) {
+    ElevatedCard(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.elevatedCardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+        )
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                SummaryItem("Receitas", uiState.totalRevenue, Color(0xFF2E7D32), formatter)
+                SummaryItem("Despesas", uiState.totalExpense, MaterialTheme.colorScheme.error, formatter)
+            }
+            HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("Saldo do Período", style = MaterialTheme.typography.titleMedium)
+                Text(
+                    text = formatter.format(uiState.totalBalance),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = if (uiState.totalBalance >= 0) Color(0xFF2E7D32) else MaterialTheme.colorScheme.error
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun SummaryItem(label: String, value: Double, color: Color, formatter: NumberFormat) {
+    Column {
+        Text(text = label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(
+            text = formatter.format(value),
+            style = MaterialTheme.typography.bodyLarge,
+            fontWeight = FontWeight.Bold,
+            color = color
+        )
     }
 }
 

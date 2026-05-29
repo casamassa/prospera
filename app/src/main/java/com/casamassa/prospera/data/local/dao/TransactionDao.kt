@@ -25,7 +25,12 @@ interface TransactionDao {
     @Query("SELECT * FROM lancamentos WHERE id = :id")
     suspend fun getTransactionById(id: Long): TransactionEntity?
 
-    @Query("SELECT * FROM lancamentos WHERE data_timestamp BETWEEN :startMillis AND :endMillis")
+    @Query("""
+        SELECT l.* FROM lancamentos l 
+        INNER JOIN contas c ON l.conta_id = c.id 
+        WHERE c.is_active = 1 
+        AND l.data_timestamp BETWEEN :startMillis AND :endMillis
+    """)
     fun getTransactionsByDateRange(startMillis: Long, endMillis: Long): Flow<List<TransactionEntity>>
 
     @Query("SELECT * FROM lancamentos WHERE conta_id = :accountId")

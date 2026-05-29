@@ -148,6 +148,8 @@ class LancamentoViewModel(
         _selectedCategoryId.value = categoryId
     }
 
+    fun isEditing(): Boolean = _editingTransaction.value != null
+
     fun showEditSheet(transaction: FinancialTransaction) {
         _editingTransaction.value = transaction
         _type.value = transaction.tipo
@@ -210,6 +212,7 @@ class LancamentoViewModel(
         viewModelScope.launch {
             _isSaving.value = true
             val transaction = FinancialTransaction(
+                id = _editingTransaction.value?.id ?: 0L,
                 descricao = _description.value,
                 valor = valueDouble,
                 dataTimestamp = _dateMillis.value,

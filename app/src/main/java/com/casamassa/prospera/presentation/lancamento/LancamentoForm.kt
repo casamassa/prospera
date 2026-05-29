@@ -1,5 +1,6 @@
 package com.casamassa.prospera.presentation.lancamento
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -14,8 +15,11 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import com.casamassa.prospera.domain.model.TransactionType
 import com.casamassa.prospera.presentation.components.DropdownSelector
+import com.casamassa.prospera.presentation.components.CategorySelector
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -32,6 +36,7 @@ fun LancamentoForm(
     val dateFormatter = remember { SimpleDateFormat("dd/MM/yyyy", Locale.forLanguageTag("pt-BR")) }
     
     var showDatePicker by remember { mutableStateOf(false) }
+    var showCategorySelector by remember { mutableStateOf(false) }
 
     if (showDatePicker) {
         val datePickerState = rememberDatePickerState(
@@ -57,6 +62,24 @@ fun LancamentoForm(
         }
     }
 
+    if (showCategorySelector) {
+        Dialog(
+            onDismissRequest = { showCategorySelector = false },
+            properties = DialogProperties(usePlatformDefaultWidth = false)
+        ) {
+            Surface(modifier = Modifier.fillMaxSize()) {
+                CategorySelector(
+                    allCategories = uiState.categories,
+                    onCategorySelected = { category ->
+                        viewModel.onCategoryChange(category.id)
+                        showCategorySelector = false
+                    },
+                    onClose = { showCategorySelector = false }
+                )
+            }
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -69,7 +92,7 @@ fun LancamentoForm(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "Novo Lançamento",
+                text = if (viewModel.isEditing()) "Editar Lançamento" else "Novo Lançamento",
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold
             )
@@ -179,7 +202,7 @@ fun LancamentoForm(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Dropdowns
+        // Conta de Origem
         val selectedAccountName = uiState.accounts.find { it.id == uiState.selectedAccountId }?.nome ?: "Selecione"
         DropdownSelector(
             label = if (uiState.type == TransactionType.TRANSFERENCIA) "Conta de Origem" else "Conta",
@@ -202,15 +225,42 @@ fun LancamentoForm(
                 modifier = Modifier.fillMaxWidth()
             )
         } else {
-            // Categoria
-            val selectedCategoryName = uiState.categories.find { it.id == uiState.selectedCategoryId }?.nome ?: "Selecione"
-            DropdownSelector(
-                label = "Categoria",
-                options = uiState.categories.map { it.nome to it.id },
-                selectedOption = selectedCategoryName,
-                onOptionSelected = { viewModel.onCategoryChange(it) },
-                modifier = Modifier.fillMaxWidth()
-            )
+            // Seletor Visual de Categoria
+            val selectedCategory = uiState.categories.find { it.id == uiState.selectedCategoryId }
+            val categoryLabel = if (selectedCategory != null) {
+                val parent = uiState.categories.find { it.id == selectedCategory.parentCategoryId }
+                if (parent != null) "${parent.nome} -> ${selectedCategory.nome}"
+                else selectedCategory.nome
+            } else "Selecionar Categoria"
+
+            OutlinedCard(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { showCategorySelector = true },
+                shape = MaterialTheme.shapes.extraSmall,
+                border = ButtonDefaults.outlinedButtonBorder
+            ) {
+                Row(
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column {
+                        Text(
+                            text = "Categoria",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            text = categoryLabel,
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = if (selectedCategory != null) FontWeight.Bold else FontWeight.Normal
+                        )
+                    }
+                }
+            }
         }
 
         if (uiState.errorMessage != null) {

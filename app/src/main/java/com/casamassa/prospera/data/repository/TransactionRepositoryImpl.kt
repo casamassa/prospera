@@ -15,8 +15,16 @@ class TransactionRepositoryImpl(
         return dao.insert(transaction.toEntity())
     }
 
+    override suspend fun updateTransaction(transaction: FinancialTransaction) {
+        dao.update(transaction.toEntity())
+    }
+
     override suspend fun deleteTransaction(transaction: FinancialTransaction) {
         dao.delete(transaction.toEntity())
+    }
+
+    override suspend fun getTransactionById(id: Long): FinancialTransaction? {
+        return dao.getTransactionById(id)?.toDomain()
     }
 
     override fun getTransactionsByDateRange(startMillis: Long, endMillis: Long): Flow<List<FinancialTransaction>> {
